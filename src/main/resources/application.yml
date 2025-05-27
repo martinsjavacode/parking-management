@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: parking-management
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/parking_management
+    username: postgres
+    password: postgres
