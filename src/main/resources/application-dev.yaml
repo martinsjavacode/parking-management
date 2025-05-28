@@ -4,13 +4,15 @@ spring:
       enabled: true
       file: src/main/docker/docker-compose.yml
       profiles:
-        active: local
+        active: ${spring.profiles.active}
       start:
         arguments: -d
       stop:
         command: down
   devtools:
+    add-properties: true
     livereload:
       enabled: true
     restart:
       poll-interval: 5s
+

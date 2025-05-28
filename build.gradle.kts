@@ -30,9 +30,12 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
+    // Fault Tolerance Dependencies
+    implementation("io.github.resilience4j:resilience4j-kotlin:${properties["resilience4jVersion"]}")
+    implementation("io.github.resilience4j:resilience4j-spring-boot3:${properties["resilience4jVersion"]}")
+
     // Database Dependencies
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.springframework:spring-jdbc")
+    implementation("org.flywaydb:flyway-database-postgresql:${properties["flywayVersion"]}")
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
 

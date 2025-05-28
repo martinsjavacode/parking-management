@@ -1,9 +1,64 @@
+
+
 spring:
   application:
     name: parking-management
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:dev}
+  webflux:
+    base-path: /api
+  devtools:
+    add-properties: false
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/parking_management
     username: postgres
     password: postgres
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    url: jdbc:postgresql://localhost:5432/parking_management
+    user: postgres
+    password: postgres
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      parkingClient:
+        register-health-indicator: true
+        sliding-window-size: 10
+        sliding-window-type: count_based
+        failure-rate-threshold: 75
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        minimum-number-of-calls: 5
+  retry:
+    instances:
+      parkingClient:
+        max-attempts: 3
+        wait-duration: 10s
+  timelimiter:
+    instances:
+      parkingClient:
+        timeout-duration: 2s
+        cancel-running-future: true
+
+client:
+  garage:
+    url: ${GARAGE_API_URL:http://localhost:3000}
+
+logging:
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] %-5level %logger{36} - %msg%n"
+  level:
+    root: INFO
+    org.flywaydb: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
