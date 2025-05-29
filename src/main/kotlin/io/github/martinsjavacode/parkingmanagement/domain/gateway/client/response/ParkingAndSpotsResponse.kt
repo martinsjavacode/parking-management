@@ -8,5 +8,5 @@ data class ParkingAndSpotsResponse(
     @JsonProperty("garage")
     val parking: List<ParkingDataResponse>,
     @JsonProperty("spots")
-    val parkingSpots: List<ParkingSpotDataResponse>
+    val parkingSpots: List<ParkingSpotDataResponse>,
 )

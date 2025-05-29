@@ -12,6 +12,4 @@ open class BusinessException(
     open val friendlyMessage: String?,
     open val internalTraceId: String?,
     open val type: ExceptionType,
-) : RuntimeException(message) {
-
-}
+) : RuntimeException(message)

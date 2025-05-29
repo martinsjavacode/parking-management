@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.application.service
+package io.github.martinsjavacode.parkingmanagement.service
 
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.client.ExternalParkingApiPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.ParkingRepositoryPort
@@ -12,7 +12,6 @@ class ParkingService(
     private val externalParkingApiPort: ExternalParkingApiPort,
     private val parkingRepositoryPort: ParkingRepositoryPort,
 ) {
-
     // Dispatcher otimizado para operações de IO com limite de paralelismo
     @OptIn(ExperimentalCoroutinesApi::class)
     private val ioDispatcher = Dispatchers.IO.limitedParallelism(10)

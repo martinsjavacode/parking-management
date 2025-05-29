@@ -6,5 +6,5 @@ enum class ExceptionType {
     VALIDATION,
     BUSINESS,
     INTERNAL_REQUEST,
-    EXTERNAL_REQUEST;
+    EXTERNAL_REQUEST,
 }

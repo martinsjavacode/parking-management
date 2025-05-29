@@ -5,5 +5,4 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ParkingRepository : CoroutineCrudRepository<ParkingEntity, Long> {
-}
+interface ParkingRepository : CoroutineCrudRepository<ParkingEntity, Long>

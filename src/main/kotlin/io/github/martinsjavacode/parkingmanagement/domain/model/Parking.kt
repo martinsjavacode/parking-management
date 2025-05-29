@@ -11,5 +11,5 @@ data class Parking(
     val openHour: LocalTime,
     val closeHour: LocalTime,
     val durationLimitMinutes: Int,
-    val spots: Flow<ParkingSpot>
+    val spots: Flow<ParkingSpot>,
 )

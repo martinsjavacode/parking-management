@@ -1,5 +1,7 @@
 package io.github.martinsjavacode.parkingmanagement.domain.enums
 
-enum class EntryEventType {
-    ENTRY, EXIT
+enum class EventType {
+    ENTRY,
+    PARKED,
+    EXIT,
 }
