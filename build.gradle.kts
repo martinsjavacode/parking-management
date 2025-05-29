@@ -3,6 +3,8 @@ plugins {
     kotlin("plugin.spring") version "2.0.21"
     id("org.springframework.boot")
     id("io.spring.dependency-management")
+    id("org.jlleitschuh.gradle.ktlint")
+    id("org.springdoc.openapi-gradle-plugin")
 }
 
 group = "io.github.martinsjavacode"

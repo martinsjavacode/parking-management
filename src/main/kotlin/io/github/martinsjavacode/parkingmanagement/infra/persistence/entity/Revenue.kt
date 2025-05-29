@@ -11,5 +11,5 @@ data class Revenue(
     val parkingId: Long,
     val date: String,
     val amount: Double,
-    val currency: String
+    val currency: String,
 )

@@ -20,5 +20,5 @@ class ParkingEntity(
     @Column("close_hour")
     var closeHour: LocalTime,
     @Column("duration_limit_minutes")
-    var durationLimitMinutes: Int
+    var durationLimitMinutes: Int,
 )

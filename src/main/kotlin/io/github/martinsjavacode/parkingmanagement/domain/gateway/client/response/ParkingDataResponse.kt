@@ -15,5 +15,5 @@ data class ParkingDataResponse(
     @JsonProperty("close_hour")
     val closeHour: String,
     @JsonProperty("duration_limit_minutes")
-    val durationLimitMinutes: Int
+    val durationLimitMinutes: Int,
 )

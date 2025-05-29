@@ -30,23 +30,23 @@ class ParkingClientAdapter(
     @TimeLimiter(name = "parkingClient", fallbackMethod = "fetchGarageConfigFallback")
     @Retry(name = "parkingClient")
     override suspend fun fetchGarageConfig(): Flow<Parking> {
-        val response = webClient.get()
-            .uri("/garage")
-            .retrieve()
-            .bodyToMono(ParkingAndSpotsResponse::class.java)
-            .awaitSingle()
+        val response =
+            webClient.get()
+                .uri("/garage")
+                .retrieve()
+                .bodyToMono(ParkingAndSpotsResponse::class.java)
+                .awaitSingle()
 
-        val parkingSpots = response.parkingSpots
-            .asFlow()
-            .map { spot ->
-                ParkingSpot(
-                    id = spot.id,
-                    sector = spot.sector,
-                    latitude = spot.lat,
-                    longitude = spot.lng,
-                    parkingId = null
-                )
-            }
+        val parkingSpots =
+            response.parkingSpots
+                .asFlow()
+                .map { spot ->
+                    ParkingSpot(
+                        sector = spot.sector,
+                        latitude = spot.lat,
+                        longitude = spot.lng,
+                    )
+                }
 
         return response.parking
             .asFlow()
@@ -54,7 +54,6 @@ class ParkingClientAdapter(
                 val spots = parkingSpots.filter { parkingSpot -> parkingSpot.sector == parking.sector }
                 parking.toDomain(spots)
             }
-
     }
 
     private fun fetchGarageConfigFallback(e: Exception): Flow<Parking> {

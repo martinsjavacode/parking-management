@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 @RestControllerAdvice
 class GlobalExceptionHandler(
     private val meterRegistry: MeterRegistry,
-    private val traceContext: TraceContext
+    private val traceContext: TraceContext,
 ) {
     val logger: Logger = loggerFor<GlobalExceptionHandler>()
 
@@ -35,7 +35,7 @@ class GlobalExceptionHandler(
                 "internalTraceId" to ex.internalTraceId,
                 "type" to ex.type,
             )
-        logger.error("Business exception occurred", logDetails)
+        logger.error("Business exception occurred. {}", logDetails)
 
         val body =
             mapOf(

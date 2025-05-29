@@ -1,9 +1,17 @@
 package io.github.martinsjavacode.parkingmanagement.domain.model
 
 data class ParkingSpot(
-    val id: Long,
+    val id: Long?,
     val parkingId: Long?,
-    val sector: String,
-    val latitude: Double,
-    val longitude: Double
-)
+    val sector: String? = null,
+    var latitude: Double,
+    var longitude: Double,
+) {
+    constructor(sector: String, latitude: Double, longitude: Double) : this(
+        id = null,
+        parkingId = null,
+        sector,
+        latitude,
+        longitude,
+    )
+}

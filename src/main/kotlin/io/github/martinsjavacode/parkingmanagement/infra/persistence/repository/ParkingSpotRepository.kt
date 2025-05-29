@@ -5,5 +5,9 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ParkingSpotRepository : CoroutineCrudRepository<ParkingSpotEntity, Long>{
+interface ParkingSpotRepository : CoroutineCrudRepository<ParkingSpotEntity, Long> {
+    suspend fun findByLatitudeAndLongitude(
+        latitude: Double,
+        longitude: Double,
+    ): ParkingSpotEntity
 }

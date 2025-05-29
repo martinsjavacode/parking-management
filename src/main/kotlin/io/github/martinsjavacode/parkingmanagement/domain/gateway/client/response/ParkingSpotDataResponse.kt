@@ -7,5 +7,5 @@ data class ParkingSpotDataResponse(
     val id: Long,
     val sector: String,
     val lat: Double,
-    val lng: Double
+    val lng: Double,
 )
