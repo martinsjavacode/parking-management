@@ -9,12 +9,12 @@ import java.time.LocalDateTime
 data class WebhookEvent(
     @JsonProperty("license_plate")
     val licensePlate: String,
-    val lat: Double? = null,
-    val lng: Double? = null,
+    val lat: Double?,
+    val lng: Double?,
     @JsonProperty("entry_time")
-    val entryTime: LocalDateTime,
+    val entryTime: LocalDateTime?,
     @JsonProperty("exit_time")
-    val exitTime: LocalDateTime? = null,
+    val exitTime: LocalDateTime?,
     @JsonProperty("event_type")
     val eventType: EventType,
 )

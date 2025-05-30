@@ -19,7 +19,10 @@ object OperationalRules {
             else -> 1.25
         }
 
-    fun checkCoordinates(latitude: Double?, longitude: Double?) {
+    fun checkCoordinates(
+        latitude: Double?,
+        longitude: Double?,
+    ) {
         val notNull = latitude != null && longitude != null
         check(notNull && (latitude in -90.0..90.0) && (longitude in -180.0..180.0)) {
             "Invalid latitude or longitude"

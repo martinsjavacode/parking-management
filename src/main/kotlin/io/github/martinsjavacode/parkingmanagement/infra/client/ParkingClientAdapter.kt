@@ -1,10 +1,10 @@
 package io.github.martinsjavacode.parkingmanagement.infra.client
 
+import io.github.martinsjavacode.parkingmanagement.domain.extension.parking.toDomain
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.client.ExternalParkingApiPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.client.response.ParkingAndSpotsResponse
-import io.github.martinsjavacode.parkingmanagement.domain.extension.toDomain
-import io.github.martinsjavacode.parkingmanagement.domain.model.Parking
-import io.github.martinsjavacode.parkingmanagement.domain.model.ParkingSpot
+import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
+import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingSpot
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
 import io.github.resilience4j.retry.annotation.Retry
