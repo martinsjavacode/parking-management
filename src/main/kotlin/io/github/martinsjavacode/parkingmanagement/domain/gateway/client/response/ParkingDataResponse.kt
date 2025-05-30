@@ -2,12 +2,13 @@ package io.github.martinsjavacode.parkingmanagement.domain.gateway.client.respon
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonProperty
+import java.math.BigDecimal
 
 @JsonAutoDetect
 data class ParkingDataResponse(
     val sector: String,
     @JsonProperty("base_price")
-    val basePrice: Double,
+    val basePrice: BigDecimal,
     @JsonProperty("max_capacity")
     val maxCapacity: Int,
     @JsonProperty("open_hour")

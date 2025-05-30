@@ -2,7 +2,7 @@ package io.github.martinsjavacode.parkingmanagement.infra.client
 
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.client.ExternalParkingApiPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.client.response.ParkingAndSpotsResponse
-import io.github.martinsjavacode.parkingmanagement.domain.gateway.extensions.toDomain
+import io.github.martinsjavacode.parkingmanagement.domain.extension.toDomain
 import io.github.martinsjavacode.parkingmanagement.domain.model.Parking
 import io.github.martinsjavacode.parkingmanagement.domain.model.ParkingSpot
 import io.github.martinsjavacode.parkingmanagement.loggerFor
@@ -30,6 +30,7 @@ class ParkingClientAdapter(
     @TimeLimiter(name = "parkingClient", fallbackMethod = "fetchGarageConfigFallback")
     @Retry(name = "parkingClient")
     override suspend fun fetchGarageConfig(): Flow<Parking> {
+        // TODO("CHECK FAULT TOLERANCE")
         val response =
             webClient.get()
                 .uri("/garage")

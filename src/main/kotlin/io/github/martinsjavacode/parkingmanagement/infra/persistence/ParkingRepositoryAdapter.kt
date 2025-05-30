@@ -6,13 +6,15 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.UNEXPECTED_DATABASE_ERROR
 import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkingSaveFailedException
 import io.github.martinsjavacode.parkingmanagement.domain.exception.UnexpectedDatabaseException
-import io.github.martinsjavacode.parkingmanagement.domain.gateway.extensions.toEntity
+import io.github.martinsjavacode.parkingmanagement.domain.extension.toDomain
+import io.github.martinsjavacode.parkingmanagement.domain.extension.toEntity
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.ParkingRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.Parking
-import io.github.martinsjavacode.parkingmanagement.infra.client.ParkingClientAdapter
+import io.github.martinsjavacode.parkingmanagement.infra.persistence.handler.PersistenceHandler
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.repository.ParkingRepository
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.repository.ParkingSpotRepository
 import io.github.martinsjavacode.parkingmanagement.loggerFor
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.map
 import org.springframework.context.MessageSource
@@ -26,12 +28,13 @@ class ParkingRepositoryAdapter(
     private val parkingSpotRepository: ParkingSpotRepository,
     private val messageSource: MessageSource,
     private val traceContext: TraceContext,
+    private val persistenceHandler: PersistenceHandler
 ) : ParkingRepositoryPort {
-    private val logger = loggerFor<ParkingClientAdapter>()
+    private val logger = loggerFor<ParkingRepositoryAdapter>()
 
     @Transactional
     override suspend fun upsert(parking: Parking) {
-        try {
+        runCatching {
             val parkingEntity = parking.toEntity()
             val parkingSaved = parkingRepository.save(parkingEntity)
 
@@ -44,7 +47,7 @@ class ParkingRepositoryAdapter(
                         LocaleContextHolder.getLocale(),
                     ),
                     messageSource.getMessage(
-                        "${PARKING_NOT_SAVED.messageKey()}.friendly}",
+                        "${PARKING_NOT_SAVED.messageKey()}.friendly",
                         null,
                         LocaleContextHolder.getLocale(),
                     ),
@@ -63,8 +66,8 @@ class ParkingRepositoryAdapter(
                     }
                     .collect { parkingSpotEntity -> parkingSpotRepository.save(parkingSpotEntity) }
             }
-        } catch (e: Exception) {
-            logger.error(e.message, e)
+        }.onFailure {
+            logger.error(it.message, it)
             throw UnexpectedDatabaseException(
                 UNEXPECTED_DATABASE_ERROR.code(),
                 messageSource.getMessage(
@@ -73,7 +76,7 @@ class ParkingRepositoryAdapter(
                     LocaleContextHolder.getLocale(),
                 ),
                 messageSource.getMessage(
-                    "${UNEXPECTED_DATABASE_ERROR.messageKey()}.friendly}",
+                    "${UNEXPECTED_DATABASE_ERROR.messageKey()}.friendly",
                     null,
                     LocaleContextHolder.getLocale(),
                 ),
@@ -83,7 +86,9 @@ class ParkingRepositoryAdapter(
         }
     }
 
-    override suspend fun findBySector(sector: String): Parking {
-        TODO("Not yet implemented")
-    }
+    override suspend fun findAll(): Flow<Parking> =
+        persistenceHandler.handleOperation {
+            parkingRepository.findAll()
+                .map { it.toDomain() }
+        }
 }

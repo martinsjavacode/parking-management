@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.domain.gateway.extensions
+package io.github.martinsjavacode.parkingmanagement.domain.extension
 
 import io.github.martinsjavacode.parkingmanagement.domain.model.ParkingSpot
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.entity.ParkingSpotEntity

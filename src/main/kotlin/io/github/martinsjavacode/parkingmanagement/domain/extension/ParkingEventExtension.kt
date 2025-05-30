@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.domain.gateway.extensions
+package io.github.martinsjavacode.parkingmanagement.domain.extension
 
 import io.github.martinsjavacode.parkingmanagement.domain.model.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.entity.ParkingEventEntity
@@ -12,6 +12,8 @@ fun ParkingEvent.toEntity() =
         latitude = this.latitude,
         longitude = this.longitude,
         exitTime = this.exitTime,
+        priceMultiplier = this.priceMultiplier,
+        amountPaid = this.amountPaid
     )
 
 fun ParkingEventEntity.toDomain() =
@@ -23,4 +25,6 @@ fun ParkingEventEntity.toDomain() =
         latitude = this.latitude,
         longitude = this.longitude,
         exitTime = this.exitTime,
+        priceMultiplier = this.priceMultiplier,
+        amountPaid = this.amountPaid
     )

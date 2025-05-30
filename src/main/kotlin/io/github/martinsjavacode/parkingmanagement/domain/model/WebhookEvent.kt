@@ -12,7 +12,7 @@ data class WebhookEvent(
     val lat: Double? = null,
     val lng: Double? = null,
     @JsonProperty("entry_time")
-    val entryTime: LocalDateTime? = null,
+    val entryTime: LocalDateTime,
     @JsonProperty("exit_time")
     val exitTime: LocalDateTime? = null,
     @JsonProperty("event_type")
