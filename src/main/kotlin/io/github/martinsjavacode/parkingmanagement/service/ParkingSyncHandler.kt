@@ -8,15 +8,15 @@ import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
 
 @Service
-class ParkingService(
+class ParkingSyncHandler(
     private val externalParkingApiPort: ExternalParkingApiPort,
     private val parkingRepositoryPort: ParkingRepositoryPort,
 ) {
-    // Dispatcher otimizado para operações de IO com limite de paralelismo
+    // Dispatcher optimized for IO operation with parallelism limits
     @OptIn(ExperimentalCoroutinesApi::class)
     private val ioDispatcher = Dispatchers.IO.limitedParallelism(10)
 
-    suspend fun fetchAndSaveParking() {
+    suspend fun execute() {
         withContext(ioDispatcher) {
             val response = externalParkingApiPort.fetchGarageConfig()
 

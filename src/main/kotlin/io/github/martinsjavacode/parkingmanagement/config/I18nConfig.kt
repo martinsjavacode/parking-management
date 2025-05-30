@@ -13,11 +13,4 @@ class I18nConfig {
             setBasename("classpath:messages/messages")
             setCacheSeconds(300) // Cache for 5 minutes
         }
-
-    @Bean
-    fun exceptionMessageSource(): MessageSource =
-        ReloadableResourceBundleMessageSource().apply {
-            setBasename("classpath:messages/exceptions")
-            setCacheSeconds(300) // Cache for 5 minutes
-        }
 }

@@ -1,7 +1,7 @@
 services:
   postgres:
-    image: postgres:latest
-    container_name: postgres
+    image: postgres:17.5
+    container_name: parking-postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -9,14 +9,14 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - estapar_data:/var/lib/postgresql/data
+      - parking_postgres_data:/var/lib/postgresql/data
     networks:
-      - estapar
+      - parking-management
 
 networks:
-  estapar:
+  parking-management:
     driver: bridge
 
 volumes:
-  estapar_data:
+  parking_postgres_data:
     driver: local

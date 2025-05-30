@@ -1,6 +1,7 @@
 package io.github.martinsjavacode.parkingmanagement.domain.model
 
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 data class ParkingEvent(
@@ -11,4 +12,6 @@ data class ParkingEvent(
     val entryTime: LocalDateTime,
     var exitTime: LocalDateTime? = null,
     var eventType: EventType,
+    val priceMultiplier: Double = 1.0,
+    val amountPaid: BigDecimal = BigDecimal.ZERO,
 )
