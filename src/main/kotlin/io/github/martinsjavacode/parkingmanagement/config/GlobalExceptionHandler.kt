@@ -3,11 +3,13 @@ package io.github.martinsjavacode.parkingmanagement.config
 import io.github.martinsjavacode.parkingmanagement.domain.exception.BusinessException
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import io.micrometer.core.instrument.MeterRegistry
+import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.Logger
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import reactor.core.publisher.Mono
 
 @RestControllerAdvice
 class GlobalExceptionHandler(
@@ -17,14 +19,17 @@ class GlobalExceptionHandler(
     val logger: Logger = loggerFor<GlobalExceptionHandler>()
 
     @ExceptionHandler(BusinessException::class)
-    fun handleBusinessException(ex: BusinessException): ResponseEntity<Map<String, Any?>> {
+    fun handleBusinessException(ex: BusinessException): Mono<ResponseEntity<Map<String, Any?>>> {
         // Metrics for exceptions
-        meterRegistry
-            .counter(
-                "exceptions.count",
-                "type",
-                ex::class.simpleName ?: "Unknown",
-            ).increment()
+        Mono.fromCallable {
+            meterRegistry
+                .counter(
+                    "exceptions.count",
+                    "type",
+                    ex::class.simpleName ?: "Unknown",
+                ).increment()
+        }.subscribe()
+
 
         val logDetails =
             mapOf(
@@ -45,11 +50,11 @@ class GlobalExceptionHandler(
                 "internalTraceId" to ex.internalTraceId,
                 "type" to ex.type,
             )
-        return ResponseEntity.status(ex.httpStatus).body(body)
+        return Mono.just(ResponseEntity.status(ex.httpStatus).body(body))
     }
 
     @ExceptionHandler(Exception::class)
-    fun handleGenericException(ex: Exception): ResponseEntity<Map<String, Any>> {
+    fun handleGenericException(ex: Exception): Mono<ResponseEntity<Map<String, Any>>> {
         val details = ex.message ?: "No details"
         val errorMessage = ex.localizedMessage ?: "Unexpected error occurred"
 
@@ -66,6 +71,6 @@ class GlobalExceptionHandler(
                 "error" to errorMessage,
                 "details" to details,
             )
-        return ResponseEntity.status(INTERNAL_SERVER_ERROR).body(body)
+        return Mono.just(ResponseEntity.status(INTERNAL_SERVER_ERROR).body(body))
     }
 }

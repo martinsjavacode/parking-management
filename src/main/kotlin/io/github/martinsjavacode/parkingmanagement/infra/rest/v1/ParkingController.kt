@@ -1,6 +1,6 @@
 package io.github.martinsjavacode.parkingmanagement.infra.rest.v1
 
-import io.github.martinsjavacode.parkingmanagement.service.ParkingSyncHandler
+import io.github.martinsjavacode.parkingmanagement.service.parking.ParkingSyncHandler
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,6 +15,6 @@ class ParkingController(
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     suspend fun fetchAndSave() {
-        parkingSyncHandler.execute()
+        parkingSyncHandler.handle()
     }
 }
