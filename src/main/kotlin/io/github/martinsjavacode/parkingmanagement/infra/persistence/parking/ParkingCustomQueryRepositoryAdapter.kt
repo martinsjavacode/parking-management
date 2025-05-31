@@ -28,7 +28,7 @@ class ParkingCustomQueryRepositoryAdapter(
             parkingCustomQueryRepository.findParkingCapacityAndOccupancy(latitude, longitude)
         }.getOrNull() ?: ParkingCapacityAndOccupancy(
             MAX_CAPACITY_DEFAULT,
-            SPOT_OCCUPANCY_DEFAULT
+            SPOT_OCCUPANCY_DEFAULT,
         )
 
     override suspend fun findParkingByCoordinates(

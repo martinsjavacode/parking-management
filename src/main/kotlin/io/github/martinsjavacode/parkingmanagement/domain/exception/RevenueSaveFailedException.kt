@@ -10,10 +10,10 @@ class RevenueSaveFailedException(
     override val internalTraceId: String?,
     override val type: ExceptionType,
 ) : BusinessException(
-    BAD_REQUEST,
-    internalCode,
-    message,
-    friendlyMessage,
-    internalTraceId,
-    type,
-)
+        BAD_REQUEST,
+        internalCode,
+        message,
+        friendlyMessage,
+        internalTraceId,
+        type,
+    )

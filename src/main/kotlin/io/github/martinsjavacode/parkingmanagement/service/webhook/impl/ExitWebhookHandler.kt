@@ -1,14 +1,11 @@
-package io.github.martinsjavacode.parkingmanagement.service.webhook
+package io.github.martinsjavacode.parkingmanagement.service.webhook.impl
 
 import io.github.martinsjavacode.parkingmanagement.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.PARKED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_CODE_EVENT_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.exception.NoParkedEventFoundException
-import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkingNotFoundException
-import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
@@ -55,10 +52,11 @@ class ExitWebhookHandler(
         validateEventData(event)
 
         val parkingEvent = fetchParkingEvent(event.licensePlate)
-        val parking = getParkingByCoordinatesOrThrowHandler.handle(
-            latitude = parkingEvent.latitude,
-            longitude = parkingEvent.longitude,
-        )
+        val parking =
+            getParkingByCoordinatesOrThrowHandler.handle(
+                latitude = parkingEvent.latitude,
+                longitude = parkingEvent.longitude,
+            )
 
         validateParkingData(parkingEvent, parking, event.licensePlate)
 
@@ -70,7 +68,6 @@ class ExitWebhookHandler(
                 durationLimitMinutes = parking.durationLimitMinutes,
                 priceMultiplier = parkingEvent.priceMultiplier,
             )
-
 
         supervisorScope {
             val updatedEventDeferred =
@@ -99,10 +96,10 @@ class ExitWebhookHandler(
     }
 
     private suspend fun fetchParkingEvent(licensePlate: String): ParkingEvent {
-        val parkingEventsFound = withContext(dispatcherIO) {
-            parkingEventRepository.findAllByLicensePlate(licensePlate)
-        }
-
+        val parkingEventsFound =
+            withContext(dispatcherIO) {
+                parkingEventRepository.findAllByLicensePlate(licensePlate)
+            }
 
         return parkingEventsFound.firstOrNull { parkingEvent -> parkingEvent.eventType == PARKED }
             ?: throw NoParkedEventFoundException(
@@ -110,7 +107,7 @@ class ExitWebhookHandler(
                 messageSource.getMessage(
                     WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey(),
                     arrayOf(PARKED.name, licensePlate),
-                    locale
+                    locale,
                 ),
                 messageSource.getMessage(
                     "${WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey()}.friendly",
@@ -118,7 +115,7 @@ class ExitWebhookHandler(
                     locale,
                 ),
                 traceContext.traceId(),
-                ExceptionType.VALIDATION
+                ExceptionType.VALIDATION,
             )
     }
 
@@ -128,10 +125,12 @@ class ExitWebhookHandler(
         licensePlate: String,
     ) {
         requireNotNull(parkingEvent) { "No parking event found for license plate: $licensePlate" }
-        requireNotNull(parking) { "No parking found for coordinates: (${parkingEvent.latitude}, ${parkingEvent.longitude})" }
+        requireNotNull(
+            parking,
+        ) { "No parking found for coordinates: (${parkingEvent.latitude}, ${parkingEvent.longitude})" }
         OperationalRules.checkCoordinates(
             latitude = parkingEvent.latitude,
-            longitude = parkingEvent.longitude
+            longitude = parkingEvent.longitude,
         )
     }
 

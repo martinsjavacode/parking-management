@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.service.webhook
+package io.github.martinsjavacode.parkingmanagement.service.webhook.impl
 
 import io.github.martinsjavacode.parkingmanagement.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
@@ -11,8 +11,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.par
 import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.loggerFor
-import io.github.martinsjavacode.parkingmanagement.service.FetchActiveLicensePlateEventsHandler
-import io.github.martinsjavacode.parkingmanagement.service.parking.GetParkingByCoordinatesOrThrowHandler
+import io.github.martinsjavacode.parkingmanagement.service.parking.FetchActiveLicensePlateEventsHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.count
@@ -30,7 +29,7 @@ class EntryWebhookHandler(
     private val traceContext: TraceContext,
     private val parkingEventRepository: ParkingEventRepositoryPort,
     private val parkingRepository: ParkingRepositoryPort,
-    private val fetchActiveLicensePlateEvents: FetchActiveLicensePlateEventsHandler
+    private val fetchActiveLicensePlateEvents: FetchActiveLicensePlateEventsHandler,
 ) {
     private val logger = loggerFor<EntryWebhookHandler>()
 

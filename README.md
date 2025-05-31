@@ -283,3 +283,16 @@ CREATE INDEX IDX_REVENUE_ON_PARKING_DATE ON revenues (parking_id, date);
 ## Limitações e Melhorias Futuras
 
 ### Limitações Identificadas:
+
+* Payload Insuficiente no Evento ENTRY:
+    * Não contém informações detalhadas, como o setor, dificultando a identificação do estacionamento correto.
+
+### Melhorias Propostas:
+1. Expandir Payloads:
+    * Adicionar informações no evento ENTRY para incluir o setor e permitir uma lógica mais granular.
+
+2. Melhorar Nomenclatura dos Endpoints REST:
+    * Ajustar para padrões mais descritivos e alinhados com boas práticas RESTful:
+      * POST /plate-status -> GET /plates/{licensePlate}/status
+      * POST /spot-status -> GET /spots/status?lat=-23.561684&lng=-46.655981
+      * GET /revenue -> GET /revenues/{sector}?date=2025-01-01

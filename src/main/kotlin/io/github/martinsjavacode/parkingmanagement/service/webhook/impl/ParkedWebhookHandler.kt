@@ -1,24 +1,20 @@
-package io.github.martinsjavacode.parkingmanagement.service.webhook
+package io.github.martinsjavacode.parkingmanagement.service.webhook.impl
 
 import io.github.martinsjavacode.parkingmanagement.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.ENTRY
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.PARKED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_CODE_EVENT_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_PARKED_EVENT_ALREADY_EXISTS
 import io.github.martinsjavacode.parkingmanagement.domain.exception.EntryEventNotFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkedEventAlreadyExistsException
-import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkingNotFoundException
-import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.domain.rules.OperationalRules
 import io.github.martinsjavacode.parkingmanagement.loggerFor
-import io.github.martinsjavacode.parkingmanagement.service.CalculatePricingMultiplierHandler
-import io.github.martinsjavacode.parkingmanagement.service.FetchActiveLicensePlateEventsHandler
+import io.github.martinsjavacode.parkingmanagement.service.parking.CalculatePricingMultiplierHandler
+import io.github.martinsjavacode.parkingmanagement.service.parking.FetchActiveLicensePlateEventsHandler
 import io.github.martinsjavacode.parkingmanagement.service.parking.GetParkingByCoordinatesOrThrowHandler
 import io.github.martinsjavacode.parkingmanagement.service.revenue.UpdateOrInitializeDailyRevenueHandler
 import kotlinx.coroutines.*
@@ -92,7 +88,6 @@ class ParkedWebhookHandler(
         priceMultiplier: Double,
         event: WebhookEvent,
     ) {
-
         val parkedEvent = existingEvent.firstOrNull { it.eventType == PARKED }
         val entryEvent = existingEvent.firstOrNull { it.eventType == ENTRY }
 
@@ -104,7 +99,7 @@ class ParkedWebhookHandler(
     private fun validateEventType(
         parkedEvent: ParkingEvent?,
         entryEvent: ParkingEvent?,
-        event: WebhookEvent
+        event: WebhookEvent,
     ) {
         if (parkedEvent != null) {
             throw ParkedEventAlreadyExistsException(
@@ -112,7 +107,7 @@ class ParkedWebhookHandler(
                 messageSource.getMessage(
                     WEBHOOK_PARKED_EVENT_ALREADY_EXISTS.messageKey(),
                     null,
-                    locale
+                    locale,
                 ),
                 messageSource.getMessage(
                     "${WEBHOOK_PARKED_EVENT_ALREADY_EXISTS.messageKey()}.friendly",
@@ -130,7 +125,7 @@ class ParkedWebhookHandler(
                 messageSource.getMessage(
                     WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey(),
                     arrayOf(ENTRY.name, event.licensePlate),
-                    locale
+                    locale,
                 ),
                 messageSource.getMessage(
                     "${WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey()}.friendly",

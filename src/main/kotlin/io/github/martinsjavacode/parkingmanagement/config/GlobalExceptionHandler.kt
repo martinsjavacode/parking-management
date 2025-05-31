@@ -3,8 +3,6 @@ package io.github.martinsjavacode.parkingmanagement.config
 import io.github.martinsjavacode.parkingmanagement.domain.exception.BusinessException
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.reactor.awaitSingle
-import org.slf4j.Logger
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -16,7 +14,7 @@ class GlobalExceptionHandler(
     private val meterRegistry: MeterRegistry,
     private val traceContext: TraceContext,
 ) {
-    val logger: Logger = loggerFor<GlobalExceptionHandler>()
+    val logger = loggerFor<GlobalExceptionHandler>()
 
     @ExceptionHandler(BusinessException::class)
     fun handleBusinessException(ex: BusinessException): Mono<ResponseEntity<Map<String, Any?>>> {
@@ -29,7 +27,6 @@ class GlobalExceptionHandler(
                     ex::class.simpleName ?: "Unknown",
                 ).increment()
         }.subscribe()
-
 
         val logDetails =
             mapOf(

@@ -1,15 +1,16 @@
-package io.github.martinsjavacode.parkingmanagement.service
+package io.github.martinsjavacode.parkingmanagement.service.parking.impl
 
 import io.github.martinsjavacode.parkingmanagement.domain.extension.percentOf
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.rules.OperationalRules
+import io.github.martinsjavacode.parkingmanagement.service.parking.CalculatePricingMultiplierHandler
 import org.springframework.stereotype.Service
 
 @Service
-class CalculatePricingMultiplierHandler(
+class CalculatePricingMultiplierHandlerImpl(
     private val parkingCustomQueryRepository: ParkingCustomQueryRepositoryPort,
-) {
-    suspend fun handle(
+) : CalculatePricingMultiplierHandler {
+    override suspend fun handle(
         latitude: Double,
         longitude: Double,
     ): Double {

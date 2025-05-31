@@ -49,8 +49,12 @@ class ParkingRepositoryAdapter(
             }
         }.onFailure {
             logger.error(
-                "Failed to save parking and its associated spots. Parking: ${parking.sector}, Trace ID: ${traceContext.traceId()}",
-                it
+                String.format(
+                    "Failed to save parking and its associated spots. Parking: {}, Trace ID: {}",
+                    parking.sector,
+                    traceContext.traceId(),
+                ),
+                it,
             )
 
             throw ParkingSaveFailedException(
