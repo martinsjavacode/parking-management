@@ -107,4 +107,25 @@ class ParkingEventRepositoryAdapter(
                 ExceptionType.PERSISTENCE_REQUEST,
             )
         }
+
+    override suspend fun findMostRecentByCoordinates(latitude: Double, longitude: Double): ParkingEvent =
+        runCatching {
+            parkingEventRepository.findLastByLatitudeAndLongitude(latitude, longitude).toDomain()
+        }.getOrElse {
+            throw ParkingEventNotFoundException(
+                PARKING_EVENT_NOT_FOUND.code(),
+                messageSource.getMessage(
+                    PARKING_EVENT_NOT_FOUND.messageKey(),
+                    null,
+                    locale,
+                ),
+                messageSource.getMessage(
+                    "${PARKING_EVENT_NOT_FOUND.messageKey()}.friendly",
+                    null,
+                    locale,
+                ),
+                traceContext.traceId(),
+                ExceptionType.PERSISTENCE_REQUEST,
+            )
+        }
 }
