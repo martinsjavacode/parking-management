@@ -8,7 +8,6 @@ import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.rev
 import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import io.github.martinsjavacode.parkingmanagement.infra.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.infra.exception.RevenueNotFoundException
-import io.github.martinsjavacode.parkingmanagement.loggerFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext

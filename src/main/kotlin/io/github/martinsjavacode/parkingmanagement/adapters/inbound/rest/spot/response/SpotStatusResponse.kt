@@ -15,6 +15,5 @@ data class SpotStatusResponse(
     @JsonProperty("entry_time")
     val entryTime: LocalDateTime,
     @JsonProperty("time_parked")
-    val timeParked: LocalDateTime
+    val timeParked: LocalDateTime,
 )
-

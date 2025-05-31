@@ -45,6 +45,9 @@ dependencies {
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.springframework.boot:spring-boot-docker-compose")
 
+    // Documentation Dependencies
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:${properties["springdocVersion"]}")
+
     // Test Dependencies
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(module = "mockito-core")

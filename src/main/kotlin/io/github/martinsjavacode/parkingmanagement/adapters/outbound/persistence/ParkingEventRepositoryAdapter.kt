@@ -108,7 +108,10 @@ class ParkingEventRepositoryAdapter(
             )
         }
 
-    override suspend fun findMostRecentByCoordinates(latitude: Double, longitude: Double): ParkingEvent =
+    override suspend fun findMostRecentByCoordinates(
+        latitude: Double,
+        longitude: Double,
+    ): ParkingEvent =
         runCatching {
             parkingEventRepository.findLastByLatitudeAndLongitude(latitude, longitude).toDomain()
         }.getOrElse {

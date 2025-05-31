@@ -8,16 +8,24 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 
 interface ParkingEventRepository : CoroutineCrudRepository<ParkingEventEntity, Long> {
     suspend fun findByLicensePlate(licensePlate: String): Flow<ParkingEventEntity>?
-    suspend fun findByLicensePlateAndEventType(licensePlate: String, eventType: EventType): ParkingEventEntity
 
-    @Query("""
+    suspend fun findByLicensePlateAndEventType(
+        licensePlate: String,
+        eventType: EventType,
+    ): ParkingEventEntity
+
+    @Query(
+        """
         SELECT *
         FROM parking_events
         WHERE latitude = :latitude
             AND longitude = :longitude
         ORDER BY entry_time DESC
         LIMIT 1
-    """)
-    suspend fun findLastByLatitudeAndLongitude(latitude: Double, longitude: Double): ParkingEventEntity
-
+    """,
+    )
+    suspend fun findLastByLatitudeAndLongitude(
+        latitude: Double,
+        longitude: Double,
+    ): ParkingEventEntity
 }

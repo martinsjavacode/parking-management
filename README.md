@@ -298,3 +298,43 @@ CREATE INDEX IDX_REVENUE_ON_PARKING_DATE ON revenues (parking_id, date);
       * POST /plate-status -> GET /plates/{licensePlate}/status
       * POST /spot-status -> GET /spots/status?lat=-23.561684&lng=-46.655981
       * GET /revenue -> GET /revenues/{sector}?date=2025-01-01
+
+---
+
+## Documentação OpenAPI com Springdoc e Gradle
+Para gerar a documentação OpenAPI automaticamente e disponibilizar a interface Swagger UI, o projeto está configurado com o plugin org.springdoc.openapi-gradle-plugin.
+
+### Configuração no build.gradle.kts
+```kotlin
+plugins {
+    id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
+}
+
+openApi {
+    apiDocsUrl.set("http://localhost:3003/v1/api-docs") // Ajuste a porta conforme aplicação
+    outputDir.set(file("$buildDir/generated"))
+    outputFileName.set("openapi.yaml")
+    waitTimeInSeconds.set(30) // Aguarda 30s para subir a aplicação antes de gerar a doc
+}
+```
+
+### Dependências relevantes
+```kotlin
+dependencies {
+    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8") // Swagger UI e OpenAPI starter
+}
+```
+### Como gerar a documentação
+1. Execute a aplicação localmente na porta configurada (exemplo: 3003).
+2. Rode o comando no terminal para gerar o arquivo OpenAPI:
+
+    ```bash
+    ./gradlew openApiGenerate
+   ```
+3. O arquivo openapi.yaml será gerado em build/generated/openapi.yaml.
+
+### Acessando a documentação
+Após a aplicação estar rodando, você pode acessar a interface interativa do Swagger UI no endereço:
+```
+http://localhost:3003/swagger-ui.html
+```     

@@ -21,10 +21,11 @@ fun ParkingSpotEntity.toDomain() =
         longitude = this.longitude,
     )
 
-fun ParkingSpotStatus.toResponse() = SpotStatusResponse(
-    ocupied = this.occupied,
-    licensePlate = if (this.occupied) this.parkingEvent.licensePlate else "",
-    priceUntilNow = this.priceUntilNow,
-    entryTime = this.parkingEvent.entryTime,
-    timeParked = this.timeParked
-)
+fun ParkingSpotStatus.toResponse() =
+    SpotStatusResponse(
+        ocupied = this.occupied,
+        licensePlate = if (this.occupied) this.parkingEvent.licensePlate else "",
+        priceUntilNow = this.priceUntilNow,
+        entryTime = this.parkingEvent.entryTime,
+        timeParked = this.timeParked,
+    )

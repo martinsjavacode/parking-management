@@ -3,7 +3,6 @@ package io.github.martinsjavacode.parkingmanagement.application.usecases.parking
 import io.github.martinsjavacode.parkingmanagement.application.usecases.parking.GetParkingByCoordinatesOrThrowHandler
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
-import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Service
 
 @Service

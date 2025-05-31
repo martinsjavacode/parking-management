@@ -40,15 +40,17 @@ class GetPlateStatusHandlerImpl(
             parkingEventRepository.findLastParkingEventByLicenseAndEventType(licensePlate, EventType.PARKED)
         }
 
-    private suspend fun fetchParkingDetails(latitude: Double, longitude: Double) =
-        withContext(dispatcherIO) {
-            parkingCustomQueryRepository.findParkingByCoordinates(latitude, longitude)
-        }
+    private suspend fun fetchParkingDetails(
+        latitude: Double,
+        longitude: Double,
+    ) = withContext(dispatcherIO) {
+        parkingCustomQueryRepository.findParkingByCoordinates(latitude, longitude)
+    }
 
     private fun calculateAmountToPay(
         parkingEvent: ParkingEvent,
         parking: Parking,
-        now: LocalDateTime
+        now: LocalDateTime,
     ): BigDecimal {
         return OperationalRules.calculateParkingFee(
             entryTime = parkingEvent.entryTime,
@@ -59,14 +61,16 @@ class GetPlateStatusHandlerImpl(
         )
     }
 
-    private fun calculateElapsedTime(entryTime: LocalDateTime, now: LocalDateTime) =
-        DateTimeRules.calculateElapsedTimeAsLocalTime(entryTime, now)
+    private fun calculateElapsedTime(
+        entryTime: LocalDateTime,
+        now: LocalDateTime,
+    ) = DateTimeRules.calculateElapsedTimeAsLocalTime(entryTime, now)
 
     private fun buildPlateStatus(
         parkingEvent: ParkingEvent,
         parking: Parking,
         amountToPay: BigDecimal,
-        elapsedTime: LocalDateTime
+        elapsedTime: LocalDateTime,
     ): PlateStatus {
         return PlateStatus(
             parkingEvent = parkingEvent,
@@ -75,5 +79,4 @@ class GetPlateStatusHandlerImpl(
             timeParked = elapsedTime,
         )
     }
-
 }

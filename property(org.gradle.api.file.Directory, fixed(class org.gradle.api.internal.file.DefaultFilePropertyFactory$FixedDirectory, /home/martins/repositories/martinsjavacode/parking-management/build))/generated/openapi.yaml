@@ -1,0 +1,314 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenAPI definition",
+    "version": "v0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/webhook": {
+      "post": {
+        "tags": [
+          "webhook-event"
+        ],
+        "operationId": "handleWebhook",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/spot-status": {
+      "post": {
+        "tags": [
+          "spot-rest-controller"
+        ],
+        "operationId": "changeSpotStatus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/plate-status": {
+      "post": {
+        "tags": [
+          "vehicle-rest-controller"
+        ],
+        "operationId": "retrievePlateStatus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LicensePlateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlateStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parking": {
+      "post": {
+        "tags": [
+          "parking-controller"
+        ],
+        "operationId": "fetchAndSave",
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/revenue": {
+      "get": {
+        "tags": [
+          "revenue-rest-controller"
+        ],
+        "operationId": "billingConsultation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyBillingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyBillingResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WebhookEvent": {
+        "type": "object",
+        "properties": {
+          "license_plate": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          },
+          "entry_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "exit_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "event_type": {
+            "type": "string",
+            "enum": [
+              "ENTRY",
+              "PARKED",
+              "EXIT"
+            ]
+          }
+        },
+        "required": [
+          "event_type",
+          "license_plate"
+        ]
+      },
+      "SpotStatusRequest": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "SpotStatusResponse": {
+        "type": "object",
+        "properties": {
+          "ocupied": {
+            "type": "boolean"
+          },
+          "license_plate": {
+            "type": "string"
+          },
+          "price_until_now": {
+            "type": "number"
+          },
+          "entry_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_parked": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "entry_time",
+          "license_plate",
+          "ocupied",
+          "price_until_now",
+          "time_parked"
+        ]
+      },
+      "LicensePlateRequest": {
+        "type": "object",
+        "properties": {
+          "license_plate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "license_plate"
+        ]
+      },
+      "PlateStatusResponse": {
+        "type": "object",
+        "properties": {
+          "license_plate": {
+            "type": "string"
+          },
+          "price_until_now": {
+            "type": "number"
+          },
+          "entry_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_parked": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "entry_time",
+          "lat",
+          "license_plate",
+          "lng",
+          "price_until_now",
+          "time_parked"
+        ]
+      },
+      "DailyBillingRequest": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "sector": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "sector"
+        ]
+      },
+      "DailyBillingResponse": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "BRL"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "amount",
+          "currency",
+          "timestamp"
+        ]
+      }
+    }
+  }
+}

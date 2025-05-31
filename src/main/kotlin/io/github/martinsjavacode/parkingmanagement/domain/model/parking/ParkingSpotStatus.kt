@@ -7,5 +7,5 @@ data class ParkingSpotStatus(
     val parkingEvent: ParkingEvent,
     val occupied: Boolean,
     val priceUntilNow: BigDecimal,
-    val timeParked: LocalDateTime
+    val timeParked: LocalDateTime,
 )

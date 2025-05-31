@@ -15,7 +15,6 @@ import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 @Service
 class GetParkingSpotStatusHandlerImpl(
@@ -25,7 +24,10 @@ class GetParkingSpotStatusHandlerImpl(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
 
-    override suspend fun handle(latitude: Double, longitude: Double): ParkingSpotStatus {
+    override suspend fun handle(
+        latitude: Double,
+        longitude: Double,
+    ): ParkingSpotStatus {
         val parkingEvent = fetchMostRecentParkingEvent(latitude, longitude)
         val parking = fetchParkingDetails(parkingEvent.latitude, parkingEvent.longitude)
         val now = LocalDateTime.now()
@@ -36,20 +38,24 @@ class GetParkingSpotStatusHandlerImpl(
         return buildParkingSpotStatus(parkingEvent, amountToPay, elapsedTime)
     }
 
-    private suspend fun fetchMostRecentParkingEvent(latitude: Double, longitude: Double) =
-        withContext(dispatcherIO) {
-            parkingEventRepository.findMostRecentByCoordinates(latitude, longitude)
-        }
+    private suspend fun fetchMostRecentParkingEvent(
+        latitude: Double,
+        longitude: Double,
+    ) = withContext(dispatcherIO) {
+        parkingEventRepository.findMostRecentByCoordinates(latitude, longitude)
+    }
 
-    private suspend fun fetchParkingDetails(latitude: Double, longitude: Double) =
-        withContext(dispatcherIO) {
-            parkingCustomQueryRepository.findParkingByCoordinates(latitude, longitude)
-        }
+    private suspend fun fetchParkingDetails(
+        latitude: Double,
+        longitude: Double,
+    ) = withContext(dispatcherIO) {
+        parkingCustomQueryRepository.findParkingByCoordinates(latitude, longitude)
+    }
 
     private fun calculateAmountToPay(
         parkingEvent: ParkingEvent,
         parking: Parking,
-        now: LocalDateTime
+        now: LocalDateTime,
     ): BigDecimal {
         return OperationalRules.calculateParkingFee(
             entryTime = parkingEvent.entryTime,
@@ -60,13 +66,15 @@ class GetParkingSpotStatusHandlerImpl(
         )
     }
 
-    private fun calculateElapsedTime(entryTime: LocalDateTime, now: LocalDateTime) =
-        DateTimeRules.calculateElapsedTimeAsLocalTime(entryTime, now)
+    private fun calculateElapsedTime(
+        entryTime: LocalDateTime,
+        now: LocalDateTime,
+    ) = DateTimeRules.calculateElapsedTimeAsLocalTime(entryTime, now)
 
     private fun buildParkingSpotStatus(
         parkingEvent: ParkingEvent,
         amountToPay: BigDecimal,
-        elapsedTime: LocalDateTime
+        elapsedTime: LocalDateTime,
     ): ParkingSpotStatus {
         val isOccupied = parkingEvent.eventType != EventType.EXIT
         return ParkingSpotStatus(
