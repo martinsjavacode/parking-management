@@ -1,10 +1,8 @@
 package io.github.martinsjavacode.parkingmanagement.service.parking
 
-import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
-
-interface GetParkingByCoordinatesOrThrowHandler {
+interface CalculatePricingMultiplierHandler {
     suspend fun handle(
         latitude: Double,
         longitude: Double,
-    ): Parking
+    ): Double
 }

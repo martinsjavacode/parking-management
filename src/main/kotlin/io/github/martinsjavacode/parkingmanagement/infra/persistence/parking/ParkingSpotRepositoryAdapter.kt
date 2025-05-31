@@ -2,7 +2,6 @@ package io.github.martinsjavacode.parkingmanagement.infra.persistence.parking
 
 import io.github.martinsjavacode.parkingmanagement.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_EVENT_NOT_SAVED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_SPOT_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkingSpotNotFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.extension.parking.toDomain

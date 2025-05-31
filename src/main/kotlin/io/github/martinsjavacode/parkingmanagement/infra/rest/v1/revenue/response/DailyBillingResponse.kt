@@ -7,6 +7,5 @@ import java.time.LocalDateTime
 data class DailyBillingResponse(
     val amount: BigDecimal,
     val currency: CurrencyType,
-    val timestamp: LocalDateTime
+    val timestamp: LocalDateTime,
 )
-

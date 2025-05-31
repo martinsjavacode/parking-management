@@ -13,5 +13,8 @@ interface RevenueRepository : CoroutineCrudRepository<RevenueEntity, Long> {
         currency: CurrencyType,
     ): RevenueEntity?
 
-    suspend fun findByDateAndParkingId(date: LocalDate, parkingId: Long): Optional<RevenueEntity>
+    suspend fun findByDateAndParkingId(
+        date: LocalDate,
+        parkingId: Long,
+    ): Optional<RevenueEntity>
 }

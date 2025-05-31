@@ -25,7 +25,10 @@ class RevenueRepositoryAdapter(
     private val logger = loggerFor<RevenueRepositoryAdapter>()
     private val locale = LocaleContextHolder.getLocale()
 
-    override suspend fun getRevenueForParkingOnDate(parkingId: Long, date: LocalDate): Revenue? {
+    override suspend fun getRevenueForParkingOnDate(
+        parkingId: Long,
+        date: LocalDate,
+    ): Revenue? {
         require(parkingId > 0) { "Parking id must be greater than 0" }
 
         return runCatching {
@@ -44,7 +47,7 @@ class RevenueRepositoryAdapter(
         }.onFailure {
             logger.error(
                 "Failed to save revenue. Parking: ${revenue.parkingId}, Trace ID: ${traceContext.traceId()}",
-                it
+                it,
             )
             throw RevenueSaveFailedException(
                 REVENUE_NOT_SAVED.code(),

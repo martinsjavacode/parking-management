@@ -4,5 +4,5 @@ import java.time.LocalDate
 
 data class DailyBillingRequest(
     val date: LocalDate,
-    val sector: String
+    val sector: String,
 )
