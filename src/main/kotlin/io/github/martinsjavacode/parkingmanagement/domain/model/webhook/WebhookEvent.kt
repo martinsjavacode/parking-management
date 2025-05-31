@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.domain.model
+package io.github.martinsjavacode.parkingmanagement.domain.model.webhook
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonProperty

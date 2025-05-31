@@ -1,5 +1,6 @@
 package io.github.martinsjavacode.parkingmanagement.infra.rest.v1.vehicle
 
+import io.github.martinsjavacode.parkingmanagement.domain.extension.vehicle.toResponse
 import io.github.martinsjavacode.parkingmanagement.infra.rest.v1.vehicle.request.LicensePlateRequest
 import io.github.martinsjavacode.parkingmanagement.infra.rest.v1.vehicle.response.PlateStatusResponse
 import io.github.martinsjavacode.parkingmanagement.service.plate.GetPlateStatusHandler
@@ -16,7 +17,7 @@ class VehicleRestController(
     suspend fun retrievePlateStatus(
         @RequestBody request: LicensePlateRequest,
     ): ResponseEntity<PlateStatusResponse> {
-        getPlateStatusHandler.handle(request.licensePlate)
-        return ResponseEntity.ok().build()
+        val plateStatus = getPlateStatusHandler.handle(request.licensePlate)
+        return ResponseEntity.ok(plateStatus.toResponse())
     }
 }

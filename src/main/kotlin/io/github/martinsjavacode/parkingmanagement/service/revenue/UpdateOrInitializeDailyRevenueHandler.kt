@@ -1,7 +1,7 @@
 package io.github.martinsjavacode.parkingmanagement.service.revenue
 
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
-import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
+import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import java.math.BigDecimal
 
 interface UpdateOrInitializeDailyRevenueHandler {

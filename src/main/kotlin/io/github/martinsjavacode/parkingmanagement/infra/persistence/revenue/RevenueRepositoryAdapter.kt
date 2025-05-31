@@ -5,10 +5,10 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType.BRL
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.REVENUE_NOT_SAVED
 import io.github.martinsjavacode.parkingmanagement.domain.exception.RevenueSaveFailedException
-import io.github.martinsjavacode.parkingmanagement.domain.extension.toDomain
-import io.github.martinsjavacode.parkingmanagement.domain.extension.toEntity
+import io.github.martinsjavacode.parkingmanagement.domain.extension.revenue.toDomain
+import io.github.martinsjavacode.parkingmanagement.domain.extension.revenue.toEntity
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.revenue.RevenueRepositoryPort
-import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
+import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.revenue.repository.RevenueRepository
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import org.springframework.context.MessageSource

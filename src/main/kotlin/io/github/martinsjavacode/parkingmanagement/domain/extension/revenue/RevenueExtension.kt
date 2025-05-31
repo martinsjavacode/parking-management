@@ -1,6 +1,6 @@
-package io.github.martinsjavacode.parkingmanagement.domain.extension
+package io.github.martinsjavacode.parkingmanagement.domain.extension.revenue
 
-import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
+import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.revenue.entity.RevenueEntity
 
 fun Revenue.toEntity() =

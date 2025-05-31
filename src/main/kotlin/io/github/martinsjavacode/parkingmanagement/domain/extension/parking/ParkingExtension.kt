@@ -14,8 +14,8 @@ fun ParkingDataResponse.toDomain(parkingSpots: Flow<ParkingSpot>) =
         sector = this.sector,
         basePrice = this.basePrice,
         maxCapacity = this.maxCapacity,
-        openHour = DateTimeRules.stringToLocalTime(this.openHour, "HH:mm"),
-        closeHour = DateTimeRules.stringToLocalTime(this.closeHour, "HH:mm"),
+        openHour = DateTimeRules.parseStringToLocalTime(this.openHour, "HH:mm"),
+        closeHour = DateTimeRules.parseStringToLocalTime(this.closeHour, "HH:mm"),
         durationLimitMinutes = this.durationLimitMinutes,
         spots = parkingSpots,
     )

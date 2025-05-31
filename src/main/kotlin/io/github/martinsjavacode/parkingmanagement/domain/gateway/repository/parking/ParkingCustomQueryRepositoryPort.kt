@@ -12,5 +12,5 @@ interface ParkingCustomQueryRepositoryPort {
     suspend fun findParkingByCoordinates(
         latitude: Double,
         longitude: Double,
-    ): Parking?
+    ): Parking
 }

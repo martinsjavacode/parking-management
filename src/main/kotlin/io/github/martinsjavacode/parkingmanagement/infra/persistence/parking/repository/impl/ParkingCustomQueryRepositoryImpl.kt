@@ -4,6 +4,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingC
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.entity.ParkingEntity
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.repository.ParkingCustomQueryRepository
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate
+import org.springframework.r2dbc.core.awaitSingle
 import org.springframework.r2dbc.core.awaitSingleOrNull
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -16,7 +17,7 @@ class ParkingCustomQueryRepositoryImpl(
     override suspend fun findParkingByLatitudeAndLongitude(
         latitude: Double,
         longitude: Double,
-    ): ParkingEntity? {
+    ): ParkingEntity {
         val query = """
             SELECT p.*
             FROM parking p
@@ -37,7 +38,7 @@ class ParkingCustomQueryRepositoryImpl(
                     closeHour = row.get("close_hour", LocalTime::class.java)!!,
                     durationLimitMinutes = row.get("duration_limit_minutes", Int::class.java)!!,
                 )
-            }.awaitSingleOrNull()
+            }.awaitSingle()
     }
 
     override suspend fun findParkingCapacityAndOccupancy(

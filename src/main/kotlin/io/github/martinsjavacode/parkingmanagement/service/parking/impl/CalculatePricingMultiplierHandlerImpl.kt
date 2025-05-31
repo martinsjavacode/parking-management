@@ -14,10 +14,10 @@ class CalculatePricingMultiplierHandlerImpl(
         latitude: Double,
         longitude: Double,
     ): Double {
-        OperationalRules.checkCoordinates(latitude, longitude)
+        OperationalRules.assertValidCoordinates(latitude, longitude)
 
         val occupancyRate = calculateOccupancyRate(latitude, longitude)
-        return OperationalRules.priceMultiplier(occupancyRate)
+        return OperationalRules.priceMultiplierForOccupancyRate(occupancyRate)
     }
 
     private suspend fun calculateOccupancyRate(
