@@ -36,7 +36,127 @@ Este sistema gerencia estacionamentos com precificação dinâmica e gerenciamen
 
 - **Nome do projeto:** parking-management
 - **Descrição resumida:** Sistema de Gestão de Estacionamento
-- **Tecnologias usadas:** Kotlin 2.0.21 com Coroutines, Spring Boot 3.5.0, PostgreSQL
+
+### Arquitetura
+O projeto segue uma arquitetura hexagonal (também conhecida como ports and adapters), com clara separação entre domínio, aplicação e infraestrutura.
+
+### Tecnologias Principais
+• **Linguagem**: Kotlin 2.0.21
+• **Framework**: Spring Boot 3.5.0
+• **Banco de Dados**: PostgreSQL
+• **Concorrência**: Kotlin Coroutines
+• **Testes**: JUnit 5, Kotest, MockK
+
+### Estrutura de Pacotes
+
+io.github.martinsjavacode.parkingmanagement/
+├── adapters/
+│   ├── extension/                  # Extensões para conversão entre modelos
+│   │   ├── NumberExtension.kt
+│   │   ├── parking/
+│   │   ├── revenue/
+│   │   └── vehicle/
+│   ├── inbound/                    # Adaptadores de entrada (controllers)
+│   │   ├── event/
+│   │   │   └── WebhookEvent.kt     # Endpoint para receber eventos de webhook
+│   │   └── rest/                   # Controllers REST
+│   │       ├── parking/
+│   │       ├── revenue/
+│   │       ├── spot/
+│   │       └── vehicle/
+│   └── outbound/                   # Adaptadores de saída (repositórios)
+│       ├── client/                 # Clientes para APIs externas
+│       └── persistence/            # Adaptadores para persistência
+│           ├── ParkingCustomQueryRepositoryAdapter.kt
+│           ├── ParkingEventRepositoryAdapter.kt
+│           ├── ParkingRepositoryAdapter.kt
+│           └── ParkingSpotRepositoryAdapter.kt
+├── application/                    # Camada de aplicação
+│   └── usecases/                   # Casos de uso da aplicação
+│       ├── parking/                # Casos de uso relacionados a estacionamento
+│       ├── plate/                  # Casos de uso relacionados a placas de veículos
+│       ├── revenue/                # Casos de uso relacionados a receitas
+│       └── webhook/                # Casos de uso para processamento de webhooks
+├── domain/                         # Camada de domínio
+│   ├── enums/                      # Enumerações do domínio
+│   │   ├── CurrencyType.kt
+│   │   ├── EventType.kt
+│   │   ├── ExceptionType.kt
+│   │   ├── InternalCodeType.kt
+│   │   └── OccupancyActionType.kt
+│   ├── gateway/                    # Portas (interfaces) para adaptadores
+│   │   ├── client/
+│   │   └── repository/
+│   │       ├── parking/
+│   │       └── revenue/
+│   ├── model/                      # Modelos de domínio
+│   │   ├── parking/
+│   │   │   ├── Parking.kt
+│   │   │   ├── ParkingCapacityAndOccupancy.kt
+│   │   │   ├── ParkingEvent.kt
+│   │   │   ├── ParkingSpot.kt
+│   │   │   └── ParkingSpotStatus.kt
+│   │   ├── revenue/
+│   │   │   └── Revenue.kt
+│   │   ├── vehicle/
+│   │   │   └── PlateStatus.kt
+│   │   └── webhook/
+│   │       └── WebhookEvent.kt
+│   └── rules/                      # Regras de negócio
+│       ├── DateTimeRules.kt
+│       └── OperationalRules.kt
+├── infra/                          # Infraestrutura
+│   ├── config/                     # Configurações
+│   │   ├── GlobalExceptionHandler.kt
+│   │   ├── I18nConfig.kt
+│   │   └── TraceContext.kt
+│   ├── exception/                  # Exceções personalizadas
+│   │   ├── BusinessException.kt
+│   │   ├── EntryEventNotFoundException.kt
+│   │   └── ... (outras exceções)
+│   └── persistence/                # Implementações de persistência
+│       ├── parking/
+│       │   ├── entity/             # Entidades JPA
+│       │   └── repository/         # Repositórios Spring Data
+│       └── revenue/
+│           ├── entity/
+│           └── repository/
+└── ParkingManagementApplication.kt # Classe principal da aplicação
+
+
+### Principais Componentes
+
+#### Modelos de Domínio
+• **Parking**: Representa um estacionamento com setor, preço base, capacidade, horários
+• **ParkingSpot**: Representa uma vaga individual com coordenadas geográficas
+• **ParkingEvent**: Representa eventos de entrada, estacionamento e saída de veículos
+• **Revenue**: Representa a receita diária por setor de estacionamento
+
+#### Regras de Negócio
+• **OperationalRules**: Implementa regras como precificação dinâmica e cálculo de tarifas
+• **DateTimeRules**: Regras relacionadas a datas e horários
+
+#### Casos de Uso
+• Processamento de eventos de webhook (entrada, estacionamento, saída)
+• Cálculo de multiplicador de preço dinâmico
+• Consulta de status de veículos e vagas
+• Consulta de receitas por setor e data
+
+#### Controllers REST
+• **VehicleRestController**: Endpoints para consulta de status de veículos
+• **SpotRestController**: Endpoints para consulta de status de vagas
+• **RevenueRestController**: Endpoints para consulta de receitas
+• **WebhookEvent**: Endpoint para receber eventos de webhook
+
+#### Adaptadores de Repositório
+• **ParkingRepositoryAdapter**: Persistência de estacionamentos
+• **ParkingEventRepositoryAdapter**: Persistência de eventos de estacionamento
+• **ParkingSpotRepositoryAdapter**: Persistência de vagas
+• **ParkingCustomQueryRepositoryAdapter**: Consultas personalizadas
+
+#### Testes
+• Testes unitários para regras de negócio e adaptadores
+• Uso de Kotest e MockK para testes mais expressivos
 
 ----
 

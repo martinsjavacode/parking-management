@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 class ParkingSyncHandlerImpl(
     private val externalParkingApi: ExternalParkingApiPort,
     private val parkingRepository: ParkingRepositoryPort,
-    private val parkingSpotRepository: ParkingSpotRepositoryPort
+    private val parkingSpotRepository: ParkingSpotRepositoryPort,
 ) : ParkingSyncHandler {
     // Dispatcher optimized for IO operation with parallelism limits
     @OptIn(ExperimentalCoroutinesApi::class)

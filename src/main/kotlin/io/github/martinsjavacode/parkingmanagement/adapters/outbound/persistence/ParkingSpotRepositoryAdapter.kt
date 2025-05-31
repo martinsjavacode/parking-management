@@ -3,8 +3,8 @@ package io.github.martinsjavacode.parkingmanagement.adapters.outbound.persistenc
 import io.github.martinsjavacode.parkingmanagement.adapters.extension.parking.toDomain
 import io.github.martinsjavacode.parkingmanagement.adapters.extension.parking.toEntity
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_SPOT_NOT_SAVED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_SPOT_NOT_FOUND
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_SPOT_NOT_SAVED
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingSpotRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingSpot
 import io.github.martinsjavacode.parkingmanagement.infra.config.TraceContext
@@ -71,6 +71,5 @@ class ParkingSpotRepositoryAdapter(
                 traceContext.traceId(),
                 ExceptionType.PERSISTENCE_REQUEST,
             )
-
         }
 }
