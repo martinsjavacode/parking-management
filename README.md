@@ -1,170 +1,285 @@
-# Garage Management Reactive System
+# Documentação Técnica do Sistema de Gestão de Estacionamento
 
-## **Descrição do Projeto**
+## Estrutura Geral do Projeto
 
-Este projeto implementa um sistema de gestão de estacionamentos utilizando programação reativa, baseado em Kotlin com coroutines e Spring WebFlux. O objetivo é gerenciar vagas, entradas e saídas de veículos, além de calcular o faturamento baseado em regras de preços dinâmicos. O sistema é modularizado seguindo a arquitetura hexagonal.
-
----
-
-## **Arquitetura**
-
-A aplicação utiliza a **arquitetura hexagonal (ports and adapters)** para separar claramente a lógica de negócio das dependências externas. A estrutura é dividida nas seguintes camadas:
-
-### 1. **Domínio**
-
-* Contém as entidades e lógica de negócio.
-* Independente de frameworks e tecnologias externas.
-
-**Classes principais:**
-
-* `Garage.kt`: Representa uma garagem com múltiplos setores.
-* `ParkingSpot.kt`: Representa uma vaga de estacionamento e sua lógica de preços dinâmicos.
-* `Event.kt`: Representa os eventos de entrada, saída e ocupação de vagas.
-
-### 2. **Aplicação**
-
-* Contém os serviços que orquestram casos de uso e regras de negócio.
-* Gerencia a comunicação entre a camada de domínio e infraestrutura.
-
-**Principais componentes:**
-
-* `GarageService.kt`: Lida com consultas de ocupação e gerenciamento de setores.
-* `PricingService.kt`: Realiza o cálculo de preços dinâmicos.
-* `EventHandler.kt`: Processa os eventos recebidos pelo simulador.
-
-### 3. **Infraestrutura**
-
-* Adapta a lógica de domínio para interagir com o mundo externo.
-
-**Principais componentes:**
-
-* **Persistência**: Repositórios e entidades para interagir com o banco de dados.
-
-    * `GarageRepository.kt`, `ParkingSpotRepository.kt`.
-    * `GarageEntity.kt`, `ParkingSpotEntity.kt`.
-* **API Web**:
-
-    * `WebhookController.kt`: Recebe eventos do simulador.
-    * `GarageController.kt`: Fornece endpoints REST para consulta de ocupação e vagas.
-    * `RevenueController.kt`: Consulta o faturamento por setor e data.
-* **Configuração**:
-
-    * `WebClientConfig.kt`: Configuração do WebClient para comunicação com o simulador.
+* **Nome do projeto:** parking-management
+* **Breve descrição do propósito:** Sistema de Gestão de Estacionamento
+* **Tecnologias utilizadas:** 
+  - Kotlin 2.0.21 Coroutines
+  - Spring Boot 3.5.0
+  - PostgreSQL 17.5
 
 ---
 
-## **Estrutura do Projeto**
+## Fluxo do Sistema
 
-```
-src/
-├── main/
-│   ├── kotlin/
-│   │   ├── com.example.garage/
-│   │   │   ├── application/
-│   │   │   │   ├── services/
-│   │   │   │   │   ├── GarageService.kt
-│   │   │   │   │   └── PricingService.kt
-│   │   │   │   └── events/
-│   │   │   │       └── EventHandler.kt
-│   │   │   ├── domain/
-│   │   │   │   ├── Garage.kt
-│   │   │   │   ├── ParkingSpot.kt
-│   │   │   │   └── Event.kt
-│   │   │   ├── infrastructure/
-│   │   │   │   ├── persistence/
-│   │   │   │   │   ├── GarageRepository.kt
-│   │   │   │   │   ├── ParkingSpotRepository.kt
-│   │   │   │   │   └── entities/
-│   │   │   │   │       ├── GarageEntity.kt
-│   │   │   │   │       └── ParkingSpotEntity.kt
-│   │   │   │   ├── web/
-│   │   │   │   │   ├── WebhookController.kt
-│   │   │   │   │   ├── GarageController.kt
-│   │   │   │   │   └── RevenueController.kt
-│   │   │   │   └── config/
-│   │   │   │       └── WebClientConfig.kt
-│   │   │   └── GarageManagementApplication.kt
-│   └── resources/
-│       ├── application.yml
-│       └── db/migration/
-│           ├── V1__Create_garages_table.sql
-│           └── V2__Create_parking_spots_table.sql
-└── test/
-    ├── kotlin/
-    │   ├── com.example.garage/
-    │   │   ├── application/
-    │   │   │   └── GarageServiceTest.kt
-    │   │   ├── domain/
-    │   │   │   └── GarageDomainTest.kt
-    │   │   └── infrastructure/
-    │   │       └── persistence/
-    │   │           └── GarageRepositoryTest.kt
-    └── resources/
-        └── application-test.yml
+### Confirmação das regras de negócio implementadas:
+
+#### Precificação dinâmica
+
+* Implementada e funcional.
+
+#### Lotação
+
+* **Preparada para cenários complexos.**
+* O sistema já gerencia a lotação separadamente por setor e aplica as regras de precificação dinâmica baseadas na ocupação de cada setor.
+
+---
+
+### Como os webhooks são tratados:
+
+#### **ENTRY:**
+
+1. Verifica se há alguma garagem em horário de funcionamento.
+2. Caso sim, registra o evento ENTRY com o multiplicador padrão de 1.0.
+
+**JSON recebido:**
+
+```json
+{
+  "license_plate": "ZUL0001",
+  "event_type": "ENTRY",
+  "timestamp": "2023-10-01T10:00:00Z"
+}
 ```
 
 ---
 
-## **Requisitos do Projeto**
+#### **PARKED:**
 
-1. **Tecnologias**:
+1. Verifica se o `license_plate` está registrado como ENTRY.
+2. Caso sim, registra o evento PARKED com o multiplicador definido pela Regra de preço dinâmico:
 
-    * Linguagem: Kotlin
-    * Framework: Spring WebFlux
-    * Banco de Dados: MySQL ou PostgreSQL
-    * Migrações: Flyway
+    * Lotação < 25%: desconto de 10% no preço. Salva 0.9 no banco de dados.
+    * Lotação <= 50%: preço base. Salva 1.0 no banco de dados.
+    * Lotação <= 75%: aumento de 10% no preço. Salva 1.1 no banco de dados.
+    * Lotação <= 100%: aumento de 25% no preço. Salva 1.25 no banco de dados.
+    * Lotação > 100%: não é possível estacionar.
+3. Caso o dia ainda não tenha um registro na tabela de receita (revenues), cria um registro para o dia com valor inicial de 0.
 
-2. **Funcionalidades**:
+**JSON recebido:**
 
-    * Receber eventos de entrada, saída e ocupação via Webhook.
-    * Consultar status de vagas e ocupação geral.
-    * Calcular preços dinâmicos com base na ocupação.
-    * Registrar faturamento por setor e data.
-
-3. **Regras de Negócio**:
-
-    * Regras de preços dinâmicos:
-
-        * Menor que 25% de ocupação: desconto de 10%.
-        * Entre 25% e 50%: preço base.
-        * Entre 50% e 75%: acréscimo de 10%.
-        * Entre 75% e 100%: acréscimo de 25%.
-    * Com 100% de lotação, o setor é fechado até liberar vagas.
-
-4. **Teste**:
-
-    * Testes unitários para camada de domínio e serviços.
-    * Testes de integração para controladores e repositórios.
+```json
+{
+  "license_plate": "ZUL0001",
+  "lat": -23.561684,
+  "lng": -46.655981,
+  "event_type": "PARKED"
+}
+```
 
 ---
 
-## **Como Executar**
+#### **EXIT:**
 
-1. Clone o repositório:
+1. Verifica se o `license_plate` está registrado como PARKED.
+2. Caso sim, calcula o valor a ser cobrado com base no multiplicador definido no evento PARKED e no tempo de permanência.
+3. Registra o evento de saída e atualiza a receita (revenues) do dia correspondente no setor apropriado.
+
+**JSON recebido:**
+
+```json
+{
+  "license_plate": "ZUL0001",
+  "exit_time": "2023-10-01T12:00:00.000Z",
+  "event_type": "EXIT"
+}
+```
+
+---
+
+## Endpoints REST Implementados
+
+### Controllers
+
+Os endpoints REST foram organizados em três Controllers principais, cada um responsável por um domínio específico do sistema:
+
+ **`VehicleRestController`**: Gerencia operações relacionadas aos veículos, como verificar status de entrada e permanência.
+
+
+### **POST /plate-status**
+
+**Request:**
+
+```JSON
+{
+  "license_plate": "ZUL0001"
+}
+```
+
+**Response:**
+
+```JSON
+{
+  "license_plate": "ZUL0001",
+  "price_until_now": 0.00,
+  "entry_time": "2025-01-01T12:00:00.000Z", 
+  "time_parked": "2025-01-01T12:00:00.000Z",
+  "lat": -23.561684,
+  "lng": -46.655981
+}
+```
+
+---
+**`SpotRestController`**: Gerencia informações sobre vagas de estacionamento, como disponibilidade e ocupação.
+
+### **POST /spot-status**
+
+**Request:**
+
+```JSON
+{
+  "lat": -23.561684,
+  "lng": -46.655981
+}
+```
+
+**Response:**
+
+```JSON
+{
+  "ocupied": false,
+  "license_plate": "",
+  "price_until_now": 0.00,
+  "entry_time": "2025-01-01T12:00:00.000Z",
+  "time_parked": "2025-01-01T12:00:00.000Z"
+}
+```
+
+---
+**`RevenueRestController`**: Gerencia informações sobre receitas, como cálculo e obtenção de valores acumulados por setor e dia.
+### **GET /revenue**
+
+**Request:**
+
+```JSON
+{
+  "date": "2025-01-01",
+  "sector": "A"
+}
+```
+
+**Response:**
+
+```JSON
+{
+  "amount": 0.00,
+  "currency": "BRL",
+  "timestamp": "2025-01-01T12:00:00.000Z"
+}
+```
+
+---
+
+## Estrutura de Dados
+
+### Tabelas Criadas no Banco de Dados
+
+#### **Tabela: Parking**
+
+```sql
+CREATE TABLE IF NOT EXISTS parking
+(
+    id                     BIGINT GENERATED BY DEFAULT AS IDENTITY,
+    sector_name            VARCHAR(50)    NOT NULL,
+    base_price             NUMERIC(10, 2) NOT NULL,
+    max_capacity           INT            NOT NULL,
+    open_hour              TIME           NOT NULL,
+    close_hour             TIME           NOT NULL,
+    duration_limit_minutes INT            NOT NULL,
+    CONSTRAINT PK_PARKING PRIMARY KEY (id)
+);
+
+CREATE INDEX IX_PARKING_SECTOR_NAME ON parking (sector_name);
+```
+
+---
+
+#### **Tabela: ParkingSpot**
+
+```sql
+CREATE TABLE IF NOT EXISTS parking_spots
+(
+    id         BIGINT GENERATED BY DEFAULT AS IDENTITY,
+    parking_id BIGINT        NOT NULL REFERENCES parking (id),
+    latitude   NUMERIC(9, 6) NOT NULL,
+    longitude  NUMERIC(9, 6) NOT NULL,
+    CONSTRAINT PK_PARKING_SPOT PRIMARY KEY (id)
+);
+
+CREATE INDEX IDX_PARKING_SPOT_PARKING_ID ON parking_spots (parking_id);
+```
+
+---
+
+#### **Tabela: ParkingEvent**
+
+```sql
+CREATE TABLE IF NOT EXISTS parking_events
+(
+    id              BIGINT GENERATED BY DEFAULT AS IDENTITY,
+    license_plate   VARCHAR(20) NOT NULL,
+    latitude        NUMERIC(9, 6),
+    longitude       NUMERIC(9, 6),
+    entry_time      TIMESTAMP   NOT NULL,
+    exit_time       TIMESTAMP,
+    event_type      VARCHAR(10) NOT NULL,
+    price_multiplier NUMERIC(3, 2),
+    amount_paid     NUMERIC(10, 2),
+    CONSTRAINT PK_PARKING_EVENT PRIMARY KEY (id),
+    CONSTRAINT CK_PARKING_EVENT_TYPE CHECK (event_type IN ('ENTRY', 'PARKED', 'EXIT'))
+);
+
+CREATE INDEX IDX_PARKING_EVENT_LICENSE_PLATE ON parking_events (license_plate);
+CREATE INDEX IDX_PARKING_EVENT_PARKING_SPOTS_ID ON parking_spots (id);
+CREATE INDEX IDX_PARKING_EVENT_EVENT_TYPE ON parking_events (event_type);
+```
+
+---
+
+#### **Tabela: Revenue**
+
+```sql
+CREATE TABLE IF NOT EXISTS revenues
+(
+    id         BIGINT GENERATED BY DEFAULT AS IDENTITY,
+    parking_id BIGINT         NOT NULL REFERENCES parking (id),
+    date       DATE           NOT NULL,
+    amount     NUMERIC(10, 2) NOT NULL,
+    currency   VARCHAR(10)    NOT NULL,
+    CONSTRAINT PK_REVENUE PRIMARY KEY (id)
+);
+
+CREATE INDEX IDX_REVENUE_ON_PARKING_DATE ON revenues (parking_id, date);
+```
+
+---
+
+## Passo a Passo de Configuração e Execução
+
+### Como rodar o projeto localmente:
+
+1. Clone o repositório.
+    ```sh
+    git clone https://
+    ```
+2. Configure as variáveis de ambiente necessárias:
+    * `SERVER_PORT=3003`
+3. Execute o banco de dados PostgreSQL localmente:
+   * O Spring Docker Compose está configurado no projeto, ele sobe automaticamente o container do PostgreSQL ao iniciar a aplicação. Para usá-lo o profiles active deve ser `dev`  
+4. Compile e inicie o projeto.
+   ```bash
+   cd ~/parking-management
+   ./gradlew clean build bootRun --refresh-dependencies
+   ```
+5. Execute o simulador com o comando:
 
    ```bash
-   git clone https://github.com/example/garage-management.git
-   cd garage-management
+   docker run -d --network="host" cfontes0estapar/garage-sim:1.0.0
    ```
 
-2. Configure o banco de dados:
+---
 
-    * Altere o arquivo `application.yml` com suas credenciais.
+## Limitações e Melhorias Futuras
 
-3. Rode as migrações:
-
-   ```bash
-    ./gradlew flywayMigrate
-   ```
-
-4. Inicie a aplicação:
-
-    ```bash
-    ./gradlew bootRun
-    ```
-
-5. Execute o simulador:
-
-    ```bash
-    docker run -d --network="host" cfontes0estapar/garage-sim:1.0.0
-    ```
+### Limitações Identificadas:

@@ -56,9 +56,10 @@ class ParkingEventRepositoryAdapter(
     override suspend fun findAllByLicensePlate(licensePlate: String): Flow<ParkingEvent> =
         runCatching {
             parkingEventRepository.findByLicensePlate(licensePlate)
-        }.getOrNull()?.map { parkingEventEntity ->
-            parkingEventEntity.toDomain()
-        } ?: throw LicensePlateNotFoundException(
+                ?.map { parkingEventEntity ->
+                    parkingEventEntity.toDomain()
+                }
+        }.getOrNull() ?: throw LicensePlateNotFoundException(
             PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.code(),
             messageSource.getMessage(
                 PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.messageKey(),
@@ -85,8 +86,8 @@ class ParkingEventRepositoryAdapter(
                 latitude = latitude,
                 longitude = longitude,
                 eventType = EventType.EXIT,
-            )
-        }.getOrNull()?.map {
-            it.toDomain()
-        } ?: flowOf()
+            ).map {
+                it.toDomain()
+            }
+        }.getOrNull() ?: flowOf()
 }

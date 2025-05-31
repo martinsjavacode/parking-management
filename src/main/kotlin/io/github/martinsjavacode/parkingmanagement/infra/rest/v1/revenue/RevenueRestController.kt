@@ -19,7 +19,13 @@ class RevenueRestController(
     suspend fun billingConsultation(
         @RequestBody body: DailyBillingRequest
     ): ResponseEntity<DailyBillingResponse> {
-        getDailyBillingByParkingSectorHandler.handle(body.date, body.sector)
-        return ResponseEntity.ok().build()
+        val revenue = getDailyBillingByParkingSectorHandler.handle(body.date, body.sector)
+        val dailyBillingResponse = DailyBillingResponse(
+            amount = revenue.amount,
+            currency = revenue.currency,
+            timestamp = revenue.date.atStartOfDay()
+        )
+
+        return ResponseEntity.ok(dailyBillingResponse)
     }
 }
