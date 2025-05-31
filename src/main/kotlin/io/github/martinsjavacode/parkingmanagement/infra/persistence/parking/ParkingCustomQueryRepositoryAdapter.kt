@@ -37,6 +37,6 @@ class ParkingCustomQueryRepositoryAdapter(
     ): Parking? =
         runCatching {
             logger.info("Searching for parking with latitude: $latitude and longitude: $longitude")
-            parkingCustomQueryRepository.findParkingByLatitudeAndLongitude(latitude, longitude)
-        }.getOrNull()?.toDomain()
+            parkingCustomQueryRepository.findParkingByLatitudeAndLongitude(latitude, longitude)?.toDomain()
+        }.getOrNull()
 }

@@ -95,7 +95,7 @@ class ParkingRepositoryAdapter(
 
     override suspend fun findBySectorName(sector: String): Parking =
         runCatching {
-            parkingRepository.findBySector(sector)
+            parkingRepository.findBySector(sector).toDomain()
         }.onFailure {
             throw ParkingNotFoundException(
                 PARKING_NOT_FOUND.code(),
@@ -112,5 +112,5 @@ class ParkingRepositoryAdapter(
                 traceContext.traceId(),
                 ExceptionType.PERSISTENCE_REQUEST,
             )
-        }.getOrThrow().toDomain()
+        }.getOrThrow()
 }

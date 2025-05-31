@@ -33,8 +33,8 @@ class RevenueRepositoryAdapter(
                 parkingId,
                 date,
                 currency = BRL,
-            )
-        }.getOrNull()?.toDomain()
+            )?.toDomain()
+        }.getOrNull()
     }
 
     override suspend fun upsert(revenue: Revenue): Revenue {

@@ -1,11 +1,11 @@
 package io.github.martinsjavacode.parkingmanagement.domain.enums
 
 enum class InternalCodeType(val code: String, val messageKey: String) {
-    // Parking Errors
+    // Parking
     PARKING_NOT_SAVED("PRK-001", "parking.not.saved"),
     PARKING_NOT_FOUND("PRK-002", "parking.not.found"),
 
-    // Parking Event Erros
+    // Parking Event
     PARKING_EVENT_LICENSE_PLATE_NOT_FOUND("PVN-001", "parking.event.license.plate.not.found"),
     PARKING_EVENT_NOT_SAVED("PVN-002", "parking.event.not.saved"),
 
@@ -19,12 +19,9 @@ enum class InternalCodeType(val code: String, val messageKey: String) {
     WEBHOOK_ENTRY_NO_PARKING_OPEN("WBH-004", "webhook.entry.no.parking.open"),
 
     // REVENUE
-    DAILY_REVENUE_NOT_FOUND("RVN-001", "daily.revenue.not.found"),
+    REVENUE_NOT_FOUND("RVN-001", "revenue.not.found"),
     REVENUE_NOT_SAVED("RVN-002", "revenue.not.saved"),
 
-
-    // General Errors
-    UNEXPECTED_DATABASE_ERROR("DFL-001", "unexpected.database.error"),
     ;
 
     fun code(): String = code

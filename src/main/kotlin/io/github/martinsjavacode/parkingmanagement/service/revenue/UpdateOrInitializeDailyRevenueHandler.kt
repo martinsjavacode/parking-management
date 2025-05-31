@@ -5,7 +5,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.*
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.DAILY_REVENUE_NOT_FOUND
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.REVENUE_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.exception.RevenueNotFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.revenue.RevenueRepositoryPort
@@ -30,6 +30,7 @@ class UpdateOrInitializeDailyRevenueHandler(
 ) {
     private val logger = loggerFor<UpdateOrInitializeDailyRevenueHandler>()
     private val currencyDate = LocalDate.now()
+    private val locale = LocaleContextHolder.getLocale()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
@@ -89,16 +90,15 @@ class UpdateOrInitializeDailyRevenueHandler(
                 revenueRepository.upsert(revenue)
             }
         } else {
-            val locale = LocaleContextHolder.getLocale()
             throw RevenueNotFoundException(
-                DAILY_REVENUE_NOT_FOUND.code(),
+                REVENUE_NOT_FOUND.code(),
                 messageSource.getMessage(
-                    DAILY_REVENUE_NOT_FOUND.messageKey(),
-                    null,
+                    REVENUE_NOT_FOUND.messageKey(),
+                    arrayOf(parkingId, LocalDate.now()),
                     locale,
                 ),
                 messageSource.getMessage(
-                    "${DAILY_REVENUE_NOT_FOUND.messageKey()}.friendly",
+                    "${REVENUE_NOT_FOUND.messageKey()}.friendly",
                     null,
                     locale,
                 ),
