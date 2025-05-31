@@ -9,5 +9,8 @@ interface ParkingEventRepositoryPort {
 
     suspend fun findAllByLicensePlate(licensePlate: String): Flow<ParkingEvent>
 
-    suspend fun findLastParkingEventByLicenseAndEventType(licensePlate: String, eventType: EventType): ParkingEvent
+    suspend fun findLastParkingEventByLicenseAndEventType(
+        licensePlate: String,
+        eventType: EventType,
+    ): ParkingEvent
 }

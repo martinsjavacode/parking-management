@@ -9,5 +9,5 @@ data class PlateStatus(
     val parkingEvent: ParkingEvent,
     val parking: Parking,
     val priceUntilNow: BigDecimal,
-    val timeParked: LocalDateTime
+    val timeParked: LocalDateTime,
 )

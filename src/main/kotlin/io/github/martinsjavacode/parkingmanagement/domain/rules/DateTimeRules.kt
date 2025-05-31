@@ -1,6 +1,5 @@
 package io.github.martinsjavacode.parkingmanagement.domain.rules
 
-import org.springframework.cglib.core.Local
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -22,7 +21,10 @@ object DateTimeRules {
         return LocalTime.parse(timeString, formatter)
     }
 
-    fun calculateElapsedTimeAsLocalTime(start: LocalDateTime, end: LocalDateTime): LocalDateTime {
+    fun calculateElapsedTimeAsLocalTime(
+        start: LocalDateTime,
+        end: LocalDateTime,
+    ): LocalDateTime {
         val durationInSeconds = Duration.between(start, end).seconds
 
         // Normalized duration to fit a day (24h)

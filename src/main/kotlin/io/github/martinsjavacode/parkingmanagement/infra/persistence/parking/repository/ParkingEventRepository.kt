@@ -7,5 +7,9 @@ import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 
 interface ParkingEventRepository : CoroutineCrudRepository<ParkingEventEntity, Long> {
     suspend fun findByLicensePlate(licensePlate: String): Flow<ParkingEventEntity>?
-    suspend fun findByLicensePlateAndEventType(licensePlate: String, eventType: EventType): ParkingEventEntity
+
+    suspend fun findByLicensePlateAndEventType(
+        licensePlate: String,
+        eventType: EventType,
+    ): ParkingEventEntity
 }
