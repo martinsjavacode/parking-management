@@ -2,5 +2,8 @@ package io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.re
 
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.entity.ParkingEntity
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
+import java.util.Optional
 
-interface ParkingRepository : CoroutineCrudRepository<ParkingEntity, Long>
+interface ParkingRepository : CoroutineCrudRepository<ParkingEntity, Long> {
+    suspend fun findBySector(sectorName: String): ParkingEntity
+}

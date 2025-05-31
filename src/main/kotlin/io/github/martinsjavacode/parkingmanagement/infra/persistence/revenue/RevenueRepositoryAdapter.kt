@@ -1,39 +1,66 @@
 package io.github.martinsjavacode.parkingmanagement.infra.persistence.revenue
 
+import io.github.martinsjavacode.parkingmanagement.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType.BRL
+import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.REVENUE_NOT_SAVED
+import io.github.martinsjavacode.parkingmanagement.domain.exception.RevenueSaveFailedException
 import io.github.martinsjavacode.parkingmanagement.domain.extension.toDomain
 import io.github.martinsjavacode.parkingmanagement.domain.extension.toEntity
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.revenue.RevenueRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
-import io.github.martinsjavacode.parkingmanagement.infra.persistence.handler.PersistenceHandler
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.revenue.repository.RevenueRepository
+import io.github.martinsjavacode.parkingmanagement.loggerFor
+import org.springframework.context.MessageSource
+import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Component
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 @Component
 class RevenueRepositoryAdapter(
+    private val messageSource: MessageSource,
+    private val traceContext: TraceContext,
     private val revenueRepository: RevenueRepository,
-    private val persistenceHandler: PersistenceHandler,
 ) : RevenueRepositoryPort {
-    @Transactional(propagation = Propagation.SUPPORTS)
-    override suspend fun findDailyRevenueByParkingId(parkingId: Long): Revenue? {
+    private val logger = loggerFor<RevenueRepositoryAdapter>()
+    private val locale = LocaleContextHolder.getLocale()
+
+    override suspend fun getRevenueForParkingOnDate(parkingId: Long, date: LocalDate): Revenue? {
         require(parkingId > 0) { "Parking id must be greater than 0" }
 
-        return persistenceHandler.handleOperation {
+        return runCatching {
             revenueRepository.findByParkingIdAndDateAndCurrency(
                 parkingId,
-                date = LocalDate.now(),
+                date,
                 currency = BRL,
-            )?.toDomain()
-        }
+            )
+        }.getOrNull()?.toDomain()
     }
 
     override suspend fun upsert(revenue: Revenue): Revenue {
-        return persistenceHandler.handleOperation {
+        return runCatching {
             val entity = revenue.toEntity()
             revenueRepository.save(entity).toDomain()
-        }
+        }.onFailure {
+            logger.error(
+                "Failed to save revenue. Parking: ${revenue.parkingId}, Trace ID: ${traceContext.traceId()}",
+                it
+            )
+            throw RevenueSaveFailedException(
+                REVENUE_NOT_SAVED.code(),
+                messageSource.getMessage(
+                    REVENUE_NOT_SAVED.messageKey(),
+                    null,
+                    locale,
+                ),
+                messageSource.getMessage(
+                    "${REVENUE_NOT_SAVED.messageKey()}.friendly",
+                    null,
+                    locale,
+                ),
+                traceContext.traceId(),
+                ExceptionType.PERSISTENCE_REQUEST,
+            )
+        }.getOrThrow()
     }
 }
