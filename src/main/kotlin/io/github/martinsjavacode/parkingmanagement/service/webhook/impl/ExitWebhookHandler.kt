@@ -29,6 +29,7 @@ import java.math.RoundingMode
 import java.time.Duration
 import java.time.LocalDateTime
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @Component
 class ExitWebhookHandler(
     private val messageSource: MessageSource,
@@ -40,10 +41,7 @@ class ExitWebhookHandler(
     private val logger = loggerFor<ExitWebhookHandler>()
     private val locale = LocaleContextHolder.getLocale()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherDefault = Dispatchers.Default.limitedParallelism(50)
 
     @Transactional
