@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.domain.model
+package io.github.martinsjavacode.parkingmanagement.domain.model.revenue
 
 import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType
 import java.math.BigDecimal

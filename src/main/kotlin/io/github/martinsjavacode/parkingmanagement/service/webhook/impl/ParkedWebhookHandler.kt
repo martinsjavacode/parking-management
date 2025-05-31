@@ -5,16 +5,13 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.ENTRY
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.PARKED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_CODE_EVENT_NOT_FOUND
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_PARKED_EVENT_ALREADY_EXISTS
 import io.github.martinsjavacode.parkingmanagement.domain.exception.EntryEventNotFoundException
-import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkedEventAlreadyExistsException
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
-import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
+import io.github.martinsjavacode.parkingmanagement.domain.model.webhook.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.domain.rules.OperationalRules
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import io.github.martinsjavacode.parkingmanagement.service.parking.CalculatePricingMultiplierHandler
-import io.github.martinsjavacode.parkingmanagement.service.parking.FetchActiveLicensePlateEventsHandler
 import io.github.martinsjavacode.parkingmanagement.service.parking.GetParkingByCoordinatesOrThrowHandler
 import io.github.martinsjavacode.parkingmanagement.service.revenue.UpdateOrInitializeDailyRevenueHandler
 import kotlinx.coroutines.*
@@ -32,7 +29,6 @@ class ParkedWebhookHandler(
     private val parkingEventRepository: ParkingEventRepositoryPort,
     private val getParkingByCoordinatesOrThrowHandler: GetParkingByCoordinatesOrThrowHandler,
     private val calculatePricingMultiplierHandler: CalculatePricingMultiplierHandler,
-    private val fetchActiveLicensePlateEventsHandler: FetchActiveLicensePlateEventsHandler,
     private val initializeDailyRevenueHandler: UpdateOrInitializeDailyRevenueHandler,
 ) {
     private val logger = loggerFor<ParkedWebhookHandler>()
@@ -76,7 +72,7 @@ class ParkedWebhookHandler(
 
     private suspend fun validateEventData(event: WebhookEvent) {
         require(event.eventType == PARKED) { "Invalid event type: ${event.eventType}" }
-        OperationalRules.checkCoordinates(latitude = event.lat, longitude = event.lng)
+        OperationalRules.assertValidCoordinates(latitude = event.lat, longitude = event.lng)
         getParkingByCoordinatesOrThrowHandler.handle(latitude = event.lat!!, longitude = event.lng!!)
     }
 

@@ -7,7 +7,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_CODE_EVENT_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.exception.NoParkedEventFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
-import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
+import io.github.martinsjavacode.parkingmanagement.domain.model.webhook.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.domain.rules.OperationalRules
@@ -25,8 +25,6 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
-import java.math.RoundingMode
-import java.time.Duration
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -59,7 +57,7 @@ class ExitWebhookHandler(
         validateParkingData(parkingEvent, parking, event.licensePlate)
 
         val amountToPay =
-            computeCharge(
+            OperationalRules.calculateParkingFee(
                 entryTime = parkingEvent.entryTime,
                 exitTime = event.exitTime!!,
                 basePrice = parking.basePrice,
@@ -126,7 +124,7 @@ class ExitWebhookHandler(
         requireNotNull(
             parking,
         ) { "No parking found for coordinates: (${parkingEvent.latitude}, ${parkingEvent.longitude})" }
-        OperationalRules.checkCoordinates(
+        OperationalRules.assertValidCoordinates(
             latitude = parkingEvent.latitude,
             longitude = parkingEvent.longitude,
         )
@@ -148,33 +146,4 @@ class ExitWebhookHandler(
             parkingEventRepository.save(updatedParkingEvent)
         }
     }
-
-    private suspend fun computeCharge(
-        entryTime: LocalDateTime,
-        exitTime: LocalDateTime,
-        basePrice: BigDecimal,
-        durationLimitMinutes: Int,
-        priceMultiplier: Double,
-    ): BigDecimal =
-        withContext(dispatcherDefault) {
-            // Calculate the duration in minutes
-            val durationMinutes = Duration.between(entryTime, exitTime).toMinutes()
-
-            // Convert the duration into proportional "periods" based on the duration limit
-            val period =
-                BigDecimal(durationMinutes).divide(
-                    // Convert duration limit to BigDecimal
-                    BigDecimal(durationLimitMinutes),
-                    // Division precision
-                    10,
-                    RoundingMode.HALF_UP,
-                )
-
-            // Calculate the base amount proportional to the period
-            val amountBase = period.multiply(basePrice)
-
-            // Multiply by the price multiplier and return the final amount with 2 decimal places
-            amountBase.multiply(BigDecimal.valueOf(priceMultiplier))
-                .setScale(2, RoundingMode.HALF_UP)
-        }
 }

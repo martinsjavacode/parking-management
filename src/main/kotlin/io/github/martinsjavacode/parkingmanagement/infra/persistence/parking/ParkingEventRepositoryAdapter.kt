@@ -3,9 +3,12 @@ package io.github.martinsjavacode.parkingmanagement.infra.persistence.parking
 import io.github.martinsjavacode.parkingmanagement.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_EVENT_LICENSE_PLATE_NOT_FOUND
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_EVENT_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_EVENT_NOT_SAVED
 import io.github.martinsjavacode.parkingmanagement.domain.exception.LicensePlateNotFoundException
+import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkingEventNotFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.exception.ParkingEventSaveFailedException
 import io.github.martinsjavacode.parkingmanagement.domain.extension.parking.toDomain
 import io.github.martinsjavacode.parkingmanagement.domain.extension.parking.toEntity
@@ -34,7 +37,11 @@ class ParkingEventRepositoryAdapter(
             val parkingEventEntity = parkingEvent.toEntity()
             parkingEventRepository.save(parkingEventEntity)
         }.onFailure {
-            logger.error("")
+            logger.error(
+                "Failed to save parking event for this license plate. License Plate: {}, Trace ID: {}",
+                parkingEvent.licensePlate,
+                traceContext.traceId(),
+            )
             throw ParkingEventSaveFailedException(
                 PARKING_EVENT_NOT_SAVED.code(),
                 messageSource.getMessage(
@@ -75,19 +82,31 @@ class ParkingEventRepositoryAdapter(
             ExceptionType.PERSISTENCE_REQUEST,
         )
 
-    override suspend fun findActiveParkingEventByLicensePlate(
+    override suspend fun findLastParkingEventByLicenseAndEventType(
         licensePlate: String,
-        latitude: Double,
-        longitude: Double,
-    ): Flow<ParkingEvent> =
+        eventType: EventType,
+    ): ParkingEvent =
         runCatching {
-            parkingEventRepository.findParkingEventsByLicensePlateOrCoordinatesAndEventTypeNot(
+            parkingEventRepository.findByLicensePlateAndEventType(
                 licensePlate = licensePlate,
-                latitude = latitude,
-                longitude = longitude,
-                eventType = EventType.EXIT,
-            ).map {
-                it.toDomain()
-            }
-        }.getOrNull() ?: flowOf()
+                eventType = eventType
+            ).toDomain()
+        }.getOrElse {
+            logger.error("No active PARKED event found for the license plate: $licensePlate")
+            throw ParkingEventNotFoundException(
+                PARKING_EVENT_NOT_FOUND.code(),
+                messageSource.getMessage(
+                    PARKING_EVENT_NOT_FOUND.messageKey(),
+                    null,
+                    locale,
+                ),
+                messageSource.getMessage(
+                    "${PARKING_EVENT_NOT_FOUND.messageKey()}.friendly",
+                    null,
+                    locale,
+                ),
+                traceContext.traceId(),
+                ExceptionType.PERSISTENCE_REQUEST,
+            )
+        }
 }

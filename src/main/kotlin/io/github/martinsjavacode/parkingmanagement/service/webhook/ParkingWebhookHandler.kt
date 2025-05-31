@@ -1,6 +1,6 @@
 package io.github.martinsjavacode.parkingmanagement.service.webhook
 
-import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
+import io.github.martinsjavacode.parkingmanagement.domain.model.webhook.WebhookEvent
 
 interface ParkingWebhookHandler {
     suspend fun execute(event: WebhookEvent)

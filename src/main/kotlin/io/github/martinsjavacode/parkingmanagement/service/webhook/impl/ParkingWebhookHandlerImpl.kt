@@ -1,7 +1,7 @@
 package io.github.martinsjavacode.parkingmanagement.service.webhook.impl
 
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
-import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
+import io.github.martinsjavacode.parkingmanagement.domain.model.webhook.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.service.webhook.ParkingWebhookHandler
 import org.springframework.stereotype.Service
 

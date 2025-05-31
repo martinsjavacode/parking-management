@@ -6,7 +6,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType
 import io.github.martinsjavacode.parkingmanagement.domain.exception.RevenueNotFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.revenue.RevenueRepositoryPort
-import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
+import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import io.github.martinsjavacode.parkingmanagement.service.revenue.GetDailyBillingByParkingSectorHandler
 import kotlinx.coroutines.Dispatchers

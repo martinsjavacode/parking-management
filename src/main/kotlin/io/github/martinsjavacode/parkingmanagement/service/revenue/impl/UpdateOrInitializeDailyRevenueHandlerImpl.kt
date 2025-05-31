@@ -8,7 +8,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType
 import io.github.martinsjavacode.parkingmanagement.domain.exception.RevenueNotFoundException
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.revenue.RevenueRepositoryPort
-import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
+import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import io.github.martinsjavacode.parkingmanagement.service.revenue.UpdateOrInitializeDailyRevenueHandler
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ class UpdateOrInitializeDailyRevenueHandlerImpl(
         logger.info("Getting parking starting coordinates")
         val parking = parkingCustomQueryRepository.findParkingByCoordinates(latitude, longitude)
 
-        return parking?.id?.let { parkingId ->
+        return parking.id?.let { parkingId ->
             when (eventType) {
                 EventType.PARKED -> initializeDailyRevenue(parkingId)
                 EventType.EXIT -> updateDailyRevenue(parkingId, amountPaid)

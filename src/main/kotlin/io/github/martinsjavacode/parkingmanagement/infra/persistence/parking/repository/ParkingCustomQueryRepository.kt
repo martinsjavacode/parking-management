@@ -7,7 +7,7 @@ interface ParkingCustomQueryRepository {
     suspend fun findParkingByLatitudeAndLongitude(
         latitude: Double,
         longitude: Double,
-    ): ParkingEntity?
+    ): ParkingEntity
 
     suspend fun findParkingCapacityAndOccupancy(
         latitude: Double,

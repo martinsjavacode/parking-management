@@ -8,12 +8,12 @@ enum class InternalCodeType(val code: String, val messageKey: String) {
     // Parking Event
     PARKING_EVENT_LICENSE_PLATE_NOT_FOUND("PVN-001", "parking.event.license.plate.not.found"),
     PARKING_EVENT_NOT_SAVED("PVN-002", "parking.event.not.saved"),
+    PARKING_EVENT_NOT_FOUND("PVN-003", "parking.event.not.found"),
 
     // PARKING_SPOT
     PARKING_SPOT_NOT_FOUND("PST-001", "parking.spot.not.found"),
 
     // Webhook Event
-    WEBHOOK_PARKED_EVENT_ALREADY_EXISTS("WBH-001", "webhook.parked.event.already.exists"),
     WEBHOOK_CODE_EVENT_NOT_FOUND("WBH-002", "webhook.code.event.not.found"),
     WEBHOOK_ENTRY_LICENSE_PLATE_CONFLICT("WBH-003", "webhook.entry.license.plate.conflict"),
     WEBHOOK_ENTRY_NO_PARKING_OPEN("WBH-004", "webhook.entry.no.parking.open"),

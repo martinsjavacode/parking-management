@@ -1,6 +1,6 @@
 package io.github.martinsjavacode.parkingmanagement.infra.rest.v1.event
 
-import io.github.martinsjavacode.parkingmanagement.domain.model.WebhookEvent
+import io.github.martinsjavacode.parkingmanagement.domain.model.webhook.WebhookEvent
 import io.github.martinsjavacode.parkingmanagement.service.webhook.ParkingWebhookHandler
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping

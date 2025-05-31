@@ -120,8 +120,10 @@ Os endpoints REST foram organizados em três Controllers principais, cada um res
 }
 ```
 
+Embora tenha sido solicitado o retorno de um `DateTime` na propriedade `time_parked`, sugiro retornar um `Time`, pois este corresponde melhor ao significado da propriedade no JSON, garantindo maior coerência entre o nome e o tipo do dado retornado.
+
 ---
-**`SpotRestController`**: Gerencia informações sobre vagas de estacionamento, como disponibilidade e ocupação.
+**`SpotRestController`**: Gerencia informações sobre vagas de estacionamento, como disponibilidade e ocupação. Para atender aos requisitos, utilizei a data atual como base e adicionei o tempo de permanência calculado
 
 ### **POST /spot-status**
 

@@ -1,6 +1,6 @@
 package io.github.martinsjavacode.parkingmanagement.service.revenue
 
-import io.github.martinsjavacode.parkingmanagement.domain.model.Revenue
+import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import java.time.LocalDate
 
 interface GetDailyBillingByParkingSectorHandler {
