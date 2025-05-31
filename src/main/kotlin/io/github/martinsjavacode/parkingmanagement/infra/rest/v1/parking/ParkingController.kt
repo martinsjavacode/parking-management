@@ -1,4 +1,4 @@
-package io.github.martinsjavacode.parkingmanagement.infra.rest.v1
+package io.github.martinsjavacode.parkingmanagement.infra.rest.v1.parking
 
 import io.github.martinsjavacode.parkingmanagement.service.parking.ParkingSyncHandler
 import org.springframework.http.HttpStatus

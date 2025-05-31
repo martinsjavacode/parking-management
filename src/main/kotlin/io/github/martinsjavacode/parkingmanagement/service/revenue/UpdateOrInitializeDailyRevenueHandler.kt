@@ -17,7 +17,6 @@ import kotlinx.coroutines.withContext
 import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Service
-import org.springframework.transaction.ReactiveTransactionManager
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -30,6 +29,7 @@ class UpdateOrInitializeDailyRevenueHandler(
     private val revenueRepository: RevenueRepositoryPort,
 ) {
     private val logger = loggerFor<UpdateOrInitializeDailyRevenueHandler>()
+    private val currencyDate = LocalDate.now()
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
@@ -57,7 +57,7 @@ class UpdateOrInitializeDailyRevenueHandler(
     private suspend fun initializeDailyRevenue(parkingId: Long): Revenue? {
         var revenueFound =
             withContext(dispatcherIO) {
-                revenueRepository.findDailyRevenueByParkingId(parkingId)
+                revenueRepository.getRevenueForParkingOnDate(parkingId, currencyDate)
             }
 
         if (revenueFound == null) {
@@ -80,7 +80,7 @@ class UpdateOrInitializeDailyRevenueHandler(
     ): Revenue {
         val revenueFound =
             withContext(dispatcherIO) {
-                revenueRepository.findDailyRevenueByParkingId(parkingId)
+                revenueRepository.getRevenueForParkingOnDate(parkingId, currencyDate)
             }
 
         return if (revenueFound != null) {

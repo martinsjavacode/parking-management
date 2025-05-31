@@ -1,9 +1,11 @@
 package io.github.martinsjavacode.parkingmanagement.service
 
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
+import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
 
@@ -20,7 +22,7 @@ class FetchActiveLicensePlateEventsHandler(
         licensePlate: String,
         latitude: Double?,
         longitude: Double?,
-    ) = withContext(dispatcherIO) {
+    ): Flow<ParkingEvent> = withContext(dispatcherIO) {
         logger.debug("Checking active parking events for licensePlate={}", licensePlate)
         parkingEventRepository.findActiveParkingEventByLicensePlate(
             licensePlate = licensePlate,
