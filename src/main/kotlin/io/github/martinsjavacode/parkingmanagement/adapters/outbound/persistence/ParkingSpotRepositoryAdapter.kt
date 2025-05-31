@@ -1,12 +1,15 @@
 package io.github.martinsjavacode.parkingmanagement.adapters.outbound.persistence
 
 import io.github.martinsjavacode.parkingmanagement.adapters.extension.parking.toDomain
+import io.github.martinsjavacode.parkingmanagement.adapters.extension.parking.toEntity
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_SPOT_NOT_SAVED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.PARKING_SPOT_NOT_FOUND
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingSpotRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingSpot
 import io.github.martinsjavacode.parkingmanagement.infra.config.TraceContext
 import io.github.martinsjavacode.parkingmanagement.infra.exception.ParkingSpotNotFoundException
+import io.github.martinsjavacode.parkingmanagement.infra.exception.ParkingSpotSaveFailedException
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.repository.ParkingSpotRepository
 import io.github.martinsjavacode.parkingmanagement.loggerFor
 import org.springframework.context.MessageSource
@@ -47,4 +50,27 @@ class ParkingSpotRepositoryAdapter(
                 ExceptionType.PERSISTENCE_REQUEST,
             )
         }.getOrThrow()
+
+    override suspend fun save(parkingSpot: ParkingSpot): ParkingSpot =
+        runCatching {
+            val spotEntity = parkingSpot.toEntity()
+            parkingSpotRepository.save(spotEntity).toDomain()
+        }.getOrElse {
+            throw ParkingSpotSaveFailedException(
+                PARKING_SPOT_NOT_SAVED.code(),
+                messageSource.getMessage(
+                    PARKING_SPOT_NOT_SAVED.messageKey(),
+                    null,
+                    locale,
+                ),
+                messageSource.getMessage(
+                    "${PARKING_SPOT_NOT_SAVED.messageKey()}.friendly",
+                    null,
+                    locale,
+                ),
+                traceContext.traceId(),
+                ExceptionType.PERSISTENCE_REQUEST,
+            )
+
+        }
 }

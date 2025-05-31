@@ -23,7 +23,7 @@ spring:
 resilience4j:
   circuitbreaker:
     instances:
-      parkingClient:
+      parkingClientCB:
         register-health-indicator: true
         sliding-window-size: 10
         sliding-window-type: count_based
@@ -34,12 +34,12 @@ resilience4j:
         minimum-number-of-calls: 5
   retry:
     instances:
-      parkingClient:
+      parkingClientRetry:
         max-attempts: 3
         wait-duration: 10s
   timelimiter:
     instances:
-      parkingClient:
+      parkingClientLimiter:
         timeout-duration: 2s
         cancel-running-future: true
 

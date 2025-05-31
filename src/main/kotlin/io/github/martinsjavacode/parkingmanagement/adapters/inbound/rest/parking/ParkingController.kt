@@ -21,7 +21,7 @@ class ParkingController(
     )
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    suspend fun fetchAndSave() {
+    suspend fun garageSync() {
         parkingSyncHandler.handle()
     }
 }

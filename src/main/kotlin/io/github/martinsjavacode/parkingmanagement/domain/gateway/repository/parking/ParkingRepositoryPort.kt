@@ -5,8 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface ParkingRepositoryPort {
     suspend fun upsert(parking: Parking)
-
     suspend fun findAll(): Flow<Parking>
-
     suspend fun findBySectorName(sector: String): Parking
 }

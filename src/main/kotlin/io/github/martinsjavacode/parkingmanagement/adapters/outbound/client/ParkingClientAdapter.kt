@@ -6,9 +6,6 @@ import io.github.martinsjavacode.parkingmanagement.domain.gateway.client.Externa
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingSpot
 import io.github.martinsjavacode.parkingmanagement.loggerFor
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
-import io.github.resilience4j.retry.annotation.Retry
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.filter
@@ -26,11 +23,7 @@ class ParkingClientAdapter(
     private val logger = loggerFor<ParkingClientAdapter>()
     private val webClient = WebClient.create(apiBaseUrl)
 
-    @CircuitBreaker(name = "parkingClient", fallbackMethod = "fetchGarageConfigFallback")
-    @TimeLimiter(name = "parkingClient", fallbackMethod = "fetchGarageConfigFallback")
-    @Retry(name = "parkingClient")
     override suspend fun fetchGarageConfig(): Flow<Parking> {
-        // TODO("CHECK FAULT TOLERANCE")
         val response =
             webClient.get()
                 .uri("/garage")

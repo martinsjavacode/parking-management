@@ -12,6 +12,7 @@ enum class InternalCodeType(val code: String, val messageKey: String) {
 
     // PARKING_SPOT
     PARKING_SPOT_NOT_FOUND("PST-001", "parking.spot.not.found"),
+    PARKING_SPOT_NOT_SAVED("PST-002", "parking.spot.not.saved"),
 
     // Webhook Event
     WEBHOOK_CODE_EVENT_NOT_FOUND("WBH-002", "webhook.code.event.not.found"),

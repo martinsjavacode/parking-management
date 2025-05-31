@@ -7,4 +7,5 @@ interface ParkingSpotRepositoryPort {
         latitude: Double,
         longitude: Double,
     ): ParkingSpot
+    suspend fun save(parkingSpot: ParkingSpot): ParkingSpot
 }
