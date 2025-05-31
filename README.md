@@ -1,39 +1,68 @@
 # Documentação Técnica do Sistema de Gestão de Estacionamento
 
+## 1. Visão Geral
+
+Este sistema gerencia estacionamentos com precificação dinâmica e gerenciamento de capacidade por setor. Ele recebe eventos via webhook de um simulador externo para acompanhar a entrada, estacionamento e saída de veículos, registrando dados de receita de forma adequada.
+
+## 2. Objetivos
+
+- Implementar um serviço backend escalável e de fácil manutenção usando Kotlin, Spring Boot e PostgreSQL.
+- Suportar precificação dinâmica baseada na ocupação de cada setor.
+- Manter o acompanhamento preciso da receita por setor e dia.
+- Fornecer APIs REST para status do veículo, status da vaga e relatórios de receita.
+- Oferecer documentação completa usando OpenAPI/Swagger.
+
+## 3. Escopo
+
+- Tratar eventos de estacionamento: ENTRY (entrada), PARKED (estacionado), EXIT (saída).
+- Gerenciar múltiplos setores de estacionamento com capacidade individual.
+- Integrar-se com simulador externo via webhook para ingestão de eventos.
+- Armazenar dados de estacionamento e receita em banco PostgreSQL.
+- Disponibilizar endpoints REST para consumo por clientes.
+- Permitir implantação containerizada com Docker Compose.
+
+## 4. Premissas e Restrições
+
+- O simulador envia webhooks confiáveis nos formatos JSON definidos.
+- Os setores possuem horários fixos de funcionamento configurados no banco.
+- Os multiplicadores para precificação dinâmica são fixos e pré-definidos.
+- O sistema será executado em ambiente dockerizado para fácil implantação.
+- A receita será atualizada apenas nos eventos de saída (EXIT).
+- A implementação atual suporta concorrência básica, com planos para melhorias.
+
+----
+
 ## Estrutura Geral do Projeto
 
-* **Nome do projeto:** parking-management
-* **Breve descrição do propósito:** Sistema de Gestão de Estacionamento
-* **Tecnologias utilizadas:** 
-  - Kotlin 2.0.21 Coroutines
-  - Spring Boot 3.5.0
-  - PostgreSQL 17.5
+- **Nome do projeto:** parking-management
+- **Descrição resumida:** Sistema de Gestão de Estacionamento
+- **Tecnologias usadas:** Kotlin 2.0.21 com Coroutines, Spring Boot 3.5.0, PostgreSQL
 
----
+----
 
 ## Fluxo do Sistema
 
 ### Confirmação das regras de negócio implementadas:
 
-#### Precificação dinâmica
+#### Precificação Dinâmica
 
-* Implementada e funcional.
+- Implementada e funcionando.
 
-#### Lotação
+#### Controle de Lotação
 
-* **Preparada para cenários complexos.**
-* O sistema já gerencia a lotação separadamente por setor e aplica as regras de precificação dinâmica baseadas na ocupação de cada setor.
+- Preparado para cenários complexos.
+- Aplica as regras de precificação dinâmica com base na ocupação do setor.
 
----
+----
 
-### Como os webhooks são tratados:
+### Tratamento dos Webhooks:
 
-#### **ENTRY:**
+#### **ENTRY (Entrada):**
 
-1. Verifica se há alguma garagem em horário de funcionamento.
-2. Caso sim, registra o evento ENTRY com o multiplicador padrão de 1.0.
+1. Verifica se há alguma garagem em funcionamento no momento.
+2. Caso positivo, registra o evento ENTRY com multiplicador padrão 1.0.
 
-**JSON recebido:**
+**Exemplo JSON recebido:**
 
 ```json
 {
@@ -42,23 +71,18 @@
   "timestamp": "2023-10-01T10:00:00Z"
 }
 ```
+----
+### **PARKED (Estacionado):**
+1. Verifica se o veículo com a license_plate está registrado como ENTRY.
+2. Caso sim, registra o evento PARKED aplicando o multiplicador definido pela regra de preço dinâmico:
+   - Lotação < 25%: desconto de 10% (multiplicador 0.9).
+   - Lotação ≤ 50%: preço base (multiplicador 1.0).
+   - Lotação ≤ 75%: acréscimo de 10% (multiplicador 1.1).
+   - Lotação ≤ 100%: acréscimo de 25% (multiplicador 1.25).
+   - Lotação > 100%: não permite estacionar.
+3. Caso não exista registro de receita para o dia, cria um registro inicial com valor zero.
 
----
-
-#### **PARKED:**
-
-1. Verifica se o `license_plate` está registrado como ENTRY.
-2. Caso sim, registra o evento PARKED com o multiplicador definido pela Regra de preço dinâmico:
-
-    * Lotação < 25%: desconto de 10% no preço. Salva 0.9 no banco de dados.
-    * Lotação <= 50%: preço base. Salva 1.0 no banco de dados.
-    * Lotação <= 75%: aumento de 10% no preço. Salva 1.1 no banco de dados.
-    * Lotação <= 100%: aumento de 25% no preço. Salva 1.25 no banco de dados.
-    * Lotação > 100%: não é possível estacionar.
-3. Caso o dia ainda não tenha um registro na tabela de receita (revenues), cria um registro para o dia com valor inicial de 0.
-
-**JSON recebido:**
-
+**Exemplo JSON recebido:**
 ```json
 {
   "license_plate": "ZUL0001",
@@ -67,17 +91,13 @@
   "event_type": "PARKED"
 }
 ```
+----
+### **EXIT (Saída):**
+1. Verifica se o veículo com a license_plate está registrado como PARKED.
+2. Caso sim, calcula o valor a ser cobrado com base no multiplicador definido no evento PARKED e no tempo estacionado.
+3. Registra o evento de saída e atualiza a receita do dia para o setor correspondente.
 
----
-
-#### **EXIT:**
-
-1. Verifica se o `license_plate` está registrado como PARKED.
-2. Caso sim, calcula o valor a ser cobrado com base no multiplicador definido no evento PARKED e no tempo de permanência.
-3. Registra o evento de saída e atualiza a receita (revenues) do dia correspondente no setor apropriado.
-
-**JSON recebido:**
-
+**Exemplo JSON recebido:**
 ```json
 {
   "license_plate": "ZUL0001",
@@ -85,60 +105,43 @@
   "event_type": "EXIT"
 }
 ```
-
----
-
+----
 ## Endpoints REST Implementados
-
 ### Controllers
-
-Os endpoints REST foram organizados em três Controllers principais, cada um responsável por um domínio específico do sistema:
-
- **`VehicleRestController`**: Gerencia operações relacionadas aos veículos, como verificar status de entrada e permanência.
-
-
+Os endpoints REST estão organizados em três controllers principais, cada um responsável por um domínio específico:
+1. `VehicleRestController`: Gerencia operações relacionadas a veículos, como status de entrada e permanência.
+2. `SpotRestController`: Gerencia informações das vagas de estacionamento, como disponibilidade e ocupação.
+3. `RevenueRestController`: Gerencia informações sobre receitas, como cálculo e consulta de valores por setor e data.
+----
 ### **POST /plate-status**
-
 **Request:**
-
-```JSON
+```json
 {
   "license_plate": "ZUL0001"
 }
 ```
-
-**Response:**
-
-```JSON
+**Response**
+```json
 {
   "license_plate": "ZUL0001",
   "price_until_now": 0.00,
-  "entry_time": "2025-01-01T12:00:00.000Z", 
+  "entry_time": "2025-01-01T12:00:00.000Z",
   "time_parked": "2025-01-01T12:00:00.000Z",
   "lat": -23.561684,
   "lng": -46.655981
 }
 ```
-
-Embora tenha sido solicitado o retorno de um `DateTime` na propriedade `time_parked`, sugiro retornar um `Time`, pois este corresponde melhor ao significado da propriedade no JSON, garantindo maior coerência entre o nome e o tipo do dado retornado.
-
----
-**`SpotRestController`**: Gerencia informações sobre vagas de estacionamento, como disponibilidade e ocupação. Para atender aos requisitos, utilizei a data atual como base e adicionei o tempo de permanência calculado
-
-### **POST /spot-status**
-
+----
+### **POST /spots/status**
 **Request:**
-
-```JSON
+```json
 {
   "lat": -23.561684,
   "lng": -46.655981
 }
 ```
-
-**Response:**
-
-```JSON
+**Response**
+```json
 {
   "ocupied": false,
   "license_plate": "",
@@ -147,39 +150,28 @@ Embora tenha sido solicitado o retorno de um `DateTime` na propriedade `time_par
   "time_parked": "2025-01-01T12:00:00.000Z"
 }
 ```
-
----
-**`RevenueRestController`**: Gerencia informações sobre receitas, como cálculo e obtenção de valores acumulados por setor e dia.
-### **GET /revenue**
-
+----
+### **GET /revenues**
 **Request:**
-
-```JSON
+```json
 {
   "date": "2025-01-01",
   "sector": "A"
 }
 ```
-
-**Response:**
-
-```JSON
+**Response**
+```json
 {
   "amount": 0.00,
   "currency": "BRL",
   "timestamp": "2025-01-01T12:00:00.000Z"
 }
 ```
+----
+## Estrutura das Tabelas no Banco de Dados
 
----
-
-## Estrutura de Dados
-
-### Tabelas Criadas no Banco de Dados
-
-#### **Tabela: Parking**
-
-```sql
+### Tabela: Parking
+```postgresql
 CREATE TABLE IF NOT EXISTS parking
 (
     id                     BIGINT GENERATED BY DEFAULT AS IDENTITY,
@@ -195,11 +187,8 @@ CREATE TABLE IF NOT EXISTS parking
 CREATE INDEX IX_PARKING_SECTOR_NAME ON parking (sector_name);
 ```
 
----
-
-#### **Tabela: ParkingSpot**
-
-```sql
+### Tabela: ParkingSpot
+```postgresql
 CREATE TABLE IF NOT EXISTS parking_spots
 (
     id         BIGINT GENERATED BY DEFAULT AS IDENTITY,
@@ -212,11 +201,8 @@ CREATE TABLE IF NOT EXISTS parking_spots
 CREATE INDEX IDX_PARKING_SPOT_PARKING_ID ON parking_spots (parking_id);
 ```
 
----
-
-#### **Tabela: ParkingEvent**
-
-```sql
+### Tabela: ParkingEvent
+```postgresql
 CREATE TABLE IF NOT EXISTS parking_events
 (
     id              BIGINT GENERATED BY DEFAULT AS IDENTITY,
@@ -233,15 +219,11 @@ CREATE TABLE IF NOT EXISTS parking_events
 );
 
 CREATE INDEX IDX_PARKING_EVENT_LICENSE_PLATE ON parking_events (license_plate);
-CREATE INDEX IDX_PARKING_EVENT_PARKING_SPOTS_ID ON parking_spots (id);
 CREATE INDEX IDX_PARKING_EVENT_EVENT_TYPE ON parking_events (event_type);
 ```
 
----
-
-#### **Tabela: Revenue**
-
-```sql
+### Tabela: Revenue
+```postgresql
 CREATE TABLE IF NOT EXISTS revenues
 (
     id         BIGINT GENERATED BY DEFAULT AS IDENTITY,
@@ -254,87 +236,80 @@ CREATE TABLE IF NOT EXISTS revenues
 
 CREATE INDEX IDX_REVENUE_ON_PARKING_DATE ON revenues (parking_id, date);
 ```
-
----
-
-## Passo a Passo de Configuração e Execução
+----
+## Passo a Passo para Configuração e Execução
 
 ### Como rodar o projeto localmente:
-
 1. Clone o repositório.
-    ```sh
-    git clone https://
-    ```
-2. Configure as variáveis de ambiente necessárias:
-    * `SERVER_PORT=3003`
+2. Configure a variável de ambiente:
+   - **SERVER_PORT=3003**
 3. Execute o banco de dados PostgreSQL localmente:
-   * O Spring Docker Compose está configurado no projeto, ele sobe automaticamente o container do PostgreSQL ao iniciar a aplicação. Para usá-lo o profiles active deve ser `dev`  
-4. Compile e inicie o projeto.
-   ```bash
-   cd ~/parking-management
-   ./gradlew clean build bootRun --refresh-dependencies
-   ```
+   - O Docker Compose do projeto sobe automaticamente o container PostgreSQL ao iniciar a aplicação.
+4. Compile e inicie a aplicação.
+    ```shell
+    ./gradlew clean build bootRun --refresh-dependencies
+    ```
 5. Execute o simulador com o comando:
-
-   ```bash
+    ```shell
    docker run -d --network="host" cfontes0estapar/garage-sim:1.0.0
    ```
+----
+## Documentação OpenAPI
 
----
+O projeto utiliza o plugin org.springdoc.openapi-gradle-plugin para gerar a documentação OpenAPI.
 
-## Limitações e Melhorias Futuras
+O Swagger UI fica disponível em:
+```
+http://localhost:{SERVER_PORT}/swagger-ui.html
+```
 
-### Limitações Identificadas:
-
-* Payload Insuficiente no Evento ENTRY:
-    * Não contém informações detalhadas, como o setor, dificultando a identificação do estacionamento correto.
-
-### Melhorias Propostas:
-1. Expandir Payloads:
-    * Adicionar informações no evento ENTRY para incluir o setor e permitir uma lógica mais granular.
-
-2. Melhorar Nomenclatura dos Endpoints REST:
-    * Ajustar para padrões mais descritivos e alinhados com boas práticas RESTful:
-      * POST /plate-status -> GET /plates/{licensePlate}/status
-      * POST /spot-status -> GET /spots/status?lat=-23.561684&lng=-46.655981
-      * GET /revenue -> GET /revenues/{sector}?date=2025-01-01
-
----
-
-## Documentação OpenAPI com Springdoc e Gradle
-Para gerar a documentação OpenAPI automaticamente e disponibilizar a interface Swagger UI, o projeto está configurado com o plugin org.springdoc.openapi-gradle-plugin.
-
-### Configuração no build.gradle.kts
+### **Exemplo de anotações OpenAPI para o** `SpotRestController`:
 ```kotlin
-plugins {
-    id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
-}
-
-openApi {
-    apiDocsUrl.set("http://localhost:3003/v1/api-docs") // Ajuste a porta conforme aplicação
-    outputDir.set(file("$buildDir/generated"))
-    outputFileName.set("openapi.yaml")
-    waitTimeInSeconds.set(30) // Aguarda 30s para subir a aplicação antes de gerar a doc
-}
+@Operation(
+    summary = "Check the status of a parking spot",
+    tags = ["Parking Spot"],
+    requestBody =
+        io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Coordinates of the parking spot to be queried",
+            required = true,
+            content = [
+                io.swagger.v3.oas.annotations.media.Content(
+                    mediaType = "application/json",
+                    schema = io.swagger.v3.oas.annotations.media.Schema(implementation = SpotStatusRequest::class),
+                ),
+            ],
+        ),
+    responses = [
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "Parking spot status",
+            content = [
+                io.swagger.v3.oas.annotations.media.Content(
+                    mediaType = "application/json",
+                    schema = io.swagger.v3.oas.annotations.media.Schema(implementation = SpotStatusResponse::class),
+                ),
+            ],
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "400",
+            description = "Invalid event data",
+            content = [
+                io.swagger.v3.oas.annotations.media.Content(
+                    mediaType = "application/json",
+                    schema = io.swagger.v3.oas.annotations.media.Schema(),
+                ),
+            ],
+        ),
+        io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "500",
+            description = "Internal server error",
+            content = [
+                io.swagger.v3.oas.annotations.media.Content(
+                    mediaType = "application/json",
+                    schema = io.swagger.v3.oas.annotations.media.Schema(),
+                ),
+            ],
+        ),
+    ],
+)
 ```
-
-### Dependências relevantes
-```kotlin
-dependencies {
-    implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8") // Swagger UI e OpenAPI starter
-}
-```
-### Como gerar a documentação
-1. Execute a aplicação localmente na porta configurada (exemplo: 3003).
-2. Rode o comando no terminal para gerar o arquivo OpenAPI:
-
-    ```bash
-    ./gradlew openApiGenerate
-   ```
-3. O arquivo openapi.yaml será gerado em build/generated/openapi.yaml.
-
-### Acessando a documentação
-Após a aplicação estar rodando, você pode acessar a interface interativa do Swagger UI no endereço:
-```
-http://localhost:3003/swagger-ui.html
-```     
