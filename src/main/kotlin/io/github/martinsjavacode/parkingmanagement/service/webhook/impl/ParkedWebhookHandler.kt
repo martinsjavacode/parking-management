@@ -56,11 +56,7 @@ class ParkedWebhookHandler(
                 }
             val existingEventDeferred =
                 async(dispatcherIO) {
-                    fetchActiveLicensePlateEventsHandler.handle(
-                        licensePlate = event.licensePlate,
-                        latitude = event.lat,
-                        longitude = event.lng,
-                    )
+                    parkingEventRepository.findAllByLicensePlate(event.licensePlate)
                 }
 
             processExistingEvents(
@@ -79,6 +75,7 @@ class ParkedWebhookHandler(
     }
 
     private suspend fun validateEventData(event: WebhookEvent) {
+        require(event.eventType == PARKED) { "Invalid event type: ${event.eventType}" }
         OperationalRules.checkCoordinates(latitude = event.lat, longitude = event.lng)
         getParkingByCoordinatesOrThrowHandler.handle(latitude = event.lat!!, longitude = event.lng!!)
     }
@@ -88,54 +85,25 @@ class ParkedWebhookHandler(
         priceMultiplier: Double,
         event: WebhookEvent,
     ) {
-        val parkedEvent = existingEvent.firstOrNull { it.eventType == PARKED }
-        val entryEvent = existingEvent.firstOrNull { it.eventType == ENTRY }
+        val entryEvent = existingEvent.firstOrNull {
+            parkingEvent -> parkingEvent.eventType == ENTRY
+        } ?: throw EntryEventNotFoundException(
+            WEBHOOK_CODE_EVENT_NOT_FOUND.code(),
+            messageSource.getMessage(
+                WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey(),
+                arrayOf(ENTRY.name, event.licensePlate),
+                locale,
+            ),
+            messageSource.getMessage(
+                "${WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey()}.friendly",
+                arrayOf(ENTRY.name, event.licensePlate),
+                locale,
+            ),
+            traceContext.traceId(),
+            ExceptionType.VALIDATION,
+        )
 
-        validateEventType(parkedEvent, entryEvent, event)
-
-        saveParkedEvent(entryEvent!!, priceMultiplier, event)
-    }
-
-    private fun validateEventType(
-        parkedEvent: ParkingEvent?,
-        entryEvent: ParkingEvent?,
-        event: WebhookEvent,
-    ) {
-        if (parkedEvent != null) {
-            throw ParkedEventAlreadyExistsException(
-                WEBHOOK_PARKED_EVENT_ALREADY_EXISTS.code(),
-                messageSource.getMessage(
-                    WEBHOOK_PARKED_EVENT_ALREADY_EXISTS.messageKey(),
-                    null,
-                    locale,
-                ),
-                messageSource.getMessage(
-                    "${WEBHOOK_PARKED_EVENT_ALREADY_EXISTS.messageKey()}.friendly",
-                    null,
-                    locale,
-                ),
-                traceContext.traceId(),
-                ExceptionType.VALIDATION,
-            )
-        }
-
-        if (entryEvent == null) {
-            throw EntryEventNotFoundException(
-                WEBHOOK_CODE_EVENT_NOT_FOUND.code(),
-                messageSource.getMessage(
-                    WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey(),
-                    arrayOf(ENTRY.name, event.licensePlate),
-                    locale,
-                ),
-                messageSource.getMessage(
-                    "${WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey()}.friendly",
-                    arrayOf(ENTRY.name, event.licensePlate),
-                    locale,
-                ),
-                traceContext.traceId(),
-                ExceptionType.VALIDATION,
-            )
-        }
+        saveParkedEvent(entryEvent, priceMultiplier, event)
     }
 
     private suspend fun saveParkedEvent(

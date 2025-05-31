@@ -1,6 +1,8 @@
 package io.github.martinsjavacode.parkingmanagement.service.webhook.impl
 
 import io.github.martinsjavacode.parkingmanagement.config.TraceContext
+import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.ENTRY
+import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.EXIT
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_ENTRY_LICENSE_PLATE_CONFLICT
 import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_ENTRY_NO_PARKING_OPEN
@@ -65,7 +67,9 @@ class EntryWebhookHandler(
     }
 
     private suspend fun validateEventData(event: WebhookEvent) {
+        require(event.eventType == ENTRY) { "Invalid event type: ${event.eventType}" }
         checkNotNull(event.entryTime) { "Entry time is required for ENTRY event" }
+        checkForLicensePlateConflict(event.licensePlate)
     }
 
     private suspend fun processEntryEvent(event: WebhookEvent) {
@@ -76,17 +80,20 @@ class EntryWebhookHandler(
                 eventType = event.eventType,
             )
 
-        val existingEvents =
-            fetchActiveLicensePlateEvents.handle(
-                licensePlate = event.licensePlate,
-                latitude = event.lat,
-                longitude = event.lng,
-            )
-        if (existingEvents.count() > 0) {
+        withContext(dispatcherIO) {
+            logger.info("Saving new parking event for licensePlate={}", event.licensePlate)
+            parkingEventRepository.save(entryEvent)
+        }
+    }
+
+    private suspend fun checkForLicensePlateConflict(licensePlate: String) {
+        val existingEvents = parkingEventRepository.findAllByLicensePlate(licensePlate)
+            .firstOrNull { parkingEvent -> parkingEvent.eventType != EXIT }
+        if (existingEvents != null) {
             val locale = LocaleContextHolder.getLocale()
             logger.warn(
                 "Conflict detected: Active parking event already exists for licensePlate={}",
-                event.licensePlate,
+                licensePlate,
             )
             throw LicensePlateConflictException(
                 WEBHOOK_ENTRY_LICENSE_PLATE_CONFLICT.code(),
@@ -103,11 +110,6 @@ class EntryWebhookHandler(
                 traceContext.traceId(),
                 ExceptionType.PERSISTENCE_REQUEST,
             )
-        }
-
-        withContext(dispatcherIO) {
-            logger.info("Saving new parking event for licensePlate={}", event.licensePlate)
-            parkingEventRepository.save(entryEvent)
         }
     }
 

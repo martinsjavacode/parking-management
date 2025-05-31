@@ -16,20 +16,16 @@ class FetchActiveLicensePlateEventsHandlerImpl(
 ) : FetchActiveLicensePlateEventsHandler {
     private val logger = loggerFor<FetchActiveLicensePlateEventsHandlerImpl>()
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
-
     override suspend fun handle(
         licensePlate: String,
         latitude: Double?,
         longitude: Double?,
-    ): Flow<ParkingEvent> =
-        withContext(dispatcherIO) {
-            logger.debug("Checking active parking events for licensePlate={}", licensePlate)
-            parkingEventRepository.findActiveParkingEventByLicensePlate(
-                licensePlate = licensePlate,
-                latitude = latitude ?: 0.0,
-                longitude = longitude ?: 0.0,
-            )
-        }
+    ): Flow<ParkingEvent> {
+        logger.debug("Checking active parking events for licensePlate={}", licensePlate)
+        return parkingEventRepository.findActiveParkingEventByLicensePlate(
+            licensePlate = licensePlate,
+            latitude = latitude ?: 0.0,
+            longitude = longitude ?: 0.0,
+        )
+    }
 }
