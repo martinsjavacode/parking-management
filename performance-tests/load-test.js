@@ -7,6 +7,8 @@ import parkingEntry from './scenarios/parking-entry.js';
 import parkingParked from './scenarios/parking-parked.js';
 import parkingExit from './scenarios/parking-exit.js';
 import getParkingStatus from './scenarios/get-spot-status.js';
+import getSpotStatus from './scenarios/get-spot-status.js';
+import getRevenue from "./scenarios/get-revenue.js";
 
 export const options = {
     vus: LOAD_TEST_VUS,
@@ -39,5 +41,15 @@ export default function () {
         parkingExit(vehicle.license_plate);
     });
 
-    // sleep(Math.floor(Math.random() * 30) + 1);
+    sleep(2);
+
+    group('Spot Status', () => {
+        getSpotStatus(vehicle.license_plate);
+    });
+
+    sleep(2);
+
+    group('Revenue', () => {
+        getRevenue()
+    });
 }
