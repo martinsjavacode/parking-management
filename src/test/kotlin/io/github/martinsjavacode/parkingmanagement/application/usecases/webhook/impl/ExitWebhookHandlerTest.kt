@@ -28,13 +28,14 @@ class ExitWebhookHandlerTest : BehaviorSpec({
     val getParkingByCoordinatesOrThrowHandler = mockk<GetParkingByCoordinatesOrThrowHandler>()
     val updateDailyRevenueHandler = mockk<UpdateOrInitializeDailyRevenueHandler>()
 
-    val exitWebhookHandler = ExitWebhookHandler(
-        messageSource = messageSource,
-        traceContext = traceContext,
-        parkingEventRepository = parkingEventRepository,
-        getParkingByCoordinatesOrThrowHandler = getParkingByCoordinatesOrThrowHandler,
-        updateDailyRevenueHandler = updateDailyRevenueHandler
-    )
+    val exitWebhookHandler =
+        ExitWebhookHandler(
+            messageSource = messageSource,
+            traceContext = traceContext,
+            parkingEventRepository = parkingEventRepository,
+            getParkingByCoordinatesOrThrowHandler = getParkingByCoordinatesOrThrowHandler,
+            updateDailyRevenueHandler = updateDailyRevenueHandler,
+        )
 
     beforeTest {
         // Default mocks for all tests
@@ -54,45 +55,49 @@ class ExitWebhookHandlerTest : BehaviorSpec({
         val longitude = -46.655981
         val priceMultiplier = 1.1
 
-        val validEvent = WebhookEvent(
-            licensePlate = licensePlate,
-            lat = null,
-            lng = null,
-            entryTime = null,
-            exitTime = exitTime,
-            eventType = EventType.EXIT
-        )
+        val validEvent =
+            WebhookEvent(
+                licensePlate = licensePlate,
+                lat = null,
+                lng = null,
+                entryTime = null,
+                exitTime = exitTime,
+                eventType = EventType.EXIT,
+            )
 
-        val parkedEvent = ParkingEvent(
-            id = 1L,
-            licensePlate = licensePlate,
-            latitude = latitude,
-            longitude = longitude,
-            entryTime = now,
-            exitTime = null,
-            eventType = EventType.PARKED,
-            priceMultiplier = priceMultiplier,
-            amountPaid = BigDecimal.ZERO
-        )
+        val parkedEvent =
+            ParkingEvent(
+                id = 1L,
+                licensePlate = licensePlate,
+                latitude = latitude,
+                longitude = longitude,
+                entryTime = now,
+                exitTime = null,
+                eventType = EventType.PARKED,
+                priceMultiplier = priceMultiplier,
+                amountPaid = BigDecimal.ZERO,
+            )
 
-        val parking = Parking(
-            id = 1L,
-            sector = "A",
-            basePrice = BigDecimal("10.00"),
-            maxCapacity = 100,
-            openHour = LocalTime.of(8, 0),
-            closeHour = LocalTime.of(20, 0),
-            durationLimitMinutes = 60,
-            spots = emptyFlow()
-        )
+        val parking =
+            Parking(
+                id = 1L,
+                sector = "A",
+                basePrice = BigDecimal("10.00"),
+                maxCapacity = 100,
+                openHour = LocalTime.of(8, 0),
+                closeHour = LocalTime.of(20, 0),
+                durationLimitMinutes = 60,
+                spots = emptyFlow(),
+            )
 
-        val revenue = Revenue(
-            id = 1L,
-            parkingId = 1L,
-            date = now.toLocalDate(),
-            amount = BigDecimal("10.00"),
-            currency = CurrencyType.BRL
-        )
+        val revenue =
+            Revenue(
+                id = 1L,
+                parkingId = 1L,
+                date = now.toLocalDate(),
+                amount = BigDecimal("10.00"),
+                currency = CurrencyType.BRL,
+            )
 
         `when`("The event has an invalid type") {
             val invalidEvent = validEvent.copy(eventType = EventType.PARKED)
@@ -153,7 +158,7 @@ class ExitWebhookHandlerTest : BehaviorSpec({
                         eventType = EventType.EXIT,
                         latitude = latitude,
                         longitude = longitude,
-                        amountPaid = any()
+                        amountPaid = any(),
                     )
                 } returns revenue
             }
@@ -167,12 +172,14 @@ class ExitWebhookHandlerTest : BehaviorSpec({
 
                 // Verify the event was updated correctly
                 coVerify(exactly = 1) {
-                    parkingEventRepository.save(match {
-                        it.licensePlate == licensePlate &&
-                        it.eventType == EventType.EXIT &&
-                        it.exitTime == exitTime &&
-                        it.amountPaid > BigDecimal.ZERO
-                    })
+                    parkingEventRepository.save(
+                        match {
+                            it.licensePlate == licensePlate &&
+                                it.eventType == EventType.EXIT &&
+                                it.exitTime == exitTime &&
+                                it.amountPaid > BigDecimal.ZERO
+                        },
+                    )
                 }
 
                 // Verify revenue was updated
@@ -181,27 +188,30 @@ class ExitWebhookHandlerTest : BehaviorSpec({
                         eventType = EventType.EXIT,
                         latitude = latitude,
                         longitude = longitude,
-                        amountPaid = any()
+                        amountPaid = any(),
                     )
                 }
             }
         }
 
         `when`("Multiple events exist for the license plate but only one is PARKED") {
-            val entryEvent = ParkingEvent(
-                id = 2L,
-                licensePlate = licensePlate,
-                latitude = latitude,
-                longitude = longitude,
-                entryTime = now.minusHours(1),
-                exitTime = null,
-                eventType = EventType.ENTRY,
-                priceMultiplier = 1.0,
-                amountPaid = BigDecimal.ZERO
-            )
+            val entryEvent =
+                ParkingEvent(
+                    id = 2L,
+                    licensePlate = licensePlate,
+                    latitude = latitude,
+                    longitude = longitude,
+                    entryTime = now.minusHours(1),
+                    exitTime = null,
+                    eventType = EventType.ENTRY,
+                    priceMultiplier = 1.0,
+                    amountPaid = BigDecimal.ZERO,
+                )
 
             beforeTest {
-                coEvery { parkingEventRepository.findAllByLicensePlate(licensePlate) } returns flowOf(entryEvent, parkedEvent)
+                coEvery {
+                    parkingEventRepository.findAllByLicensePlate(licensePlate)
+                } returns flowOf(entryEvent, parkedEvent)
                 coEvery { getParkingByCoordinatesOrThrowHandler.handle(latitude, longitude) } returns parking
                 coEvery { parkingEventRepository.save(any()) } just Runs
                 coEvery {
@@ -209,7 +219,7 @@ class ExitWebhookHandlerTest : BehaviorSpec({
                         eventType = EventType.EXIT,
                         latitude = latitude,
                         longitude = longitude,
-                        amountPaid = any()
+                        amountPaid = any(),
                     )
                 } returns revenue
             }
@@ -219,10 +229,12 @@ class ExitWebhookHandlerTest : BehaviorSpec({
 
                 coVerify(exactly = 1) { parkingEventRepository.findAllByLicensePlate(licensePlate) }
                 coVerify(exactly = 1) {
-                    parkingEventRepository.save(match {
-                        it.id == 1L && // Should match the parkedEvent id
-                        it.eventType == EventType.EXIT
-                    })
+                    parkingEventRepository.save(
+                        match {
+                            it.id == 1L && // Should match the parkedEvent id
+                                it.eventType == EventType.EXIT
+                        },
+                    )
                 }
             }
         }

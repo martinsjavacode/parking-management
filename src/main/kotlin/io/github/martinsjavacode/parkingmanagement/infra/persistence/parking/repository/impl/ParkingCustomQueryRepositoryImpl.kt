@@ -28,7 +28,7 @@ class ParkingCustomQueryRepositoryImpl(
             .sql(query)
             .bind("latitude", latitude)
             .bind("longitude", longitude)
-            .map { row, metadata ->
+            .map { row, _ ->
                 ParkingEntity(
                     id = row.get("id", Long::class.java)!!,
                     sector = row.get("sector_name", String::class.java)!!,
@@ -61,7 +61,7 @@ class ParkingCustomQueryRepositoryImpl(
             .sql(query)
             .bind("latitude", latitude)
             .bind("longitude", longitude)
-            .map { row, metadata ->
+            .map { row, _ ->
                 ParkingCapacityAndOccupancy(
                     maxCapacity = row.get("max_capacity", Int::class.java)!!,
                     spotOccupancy = row.get("spot_occupancy", Int::class.java)!!,
