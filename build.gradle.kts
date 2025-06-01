@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 plugins {
     kotlin("jvm") version "2.0.21"
     kotlin("plugin.spring") version "2.0.21"
@@ -5,7 +8,6 @@ plugins {
     id("io.spring.dependency-management")
     id("org.jlleitschuh.gradle.ktlint")
     id("org.springdoc.openapi-gradle-plugin")
-    id("org.jetbrains.dokka")
     jacoco
 }
 
@@ -43,10 +45,6 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.postgresql:r2dbc-postgresql")
 
-    // H2 Database for Testing
-    testImplementation("com.h2database:h2")
-    testImplementation("io.r2dbc:r2dbc-h2")
-
     // Development Dependencies
     developmentOnly("org.springframework.boot:spring-boot-devtools")
     runtimeOnly("org.springframework.boot:spring-boot-docker-compose")
@@ -66,12 +64,19 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
     testImplementation("io.kotest:kotest-property:5.6.2")
 
+    // H2 Database for Testing
+    testImplementation("com.h2database:h2")
+    testImplementation("io.r2dbc:r2dbc-h2")
+
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
+        languageVersion.set(KotlinVersion.KOTLIN_1_9)
+        jvmTarget.set(JvmTarget.JVM_21)
+        javaParameters.set(true)
     }
 }
 

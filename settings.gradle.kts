@@ -3,7 +3,6 @@ pluginManagement {
     val springDependencyManagementVersion: String by settings
     val ktlintVersion: String by settings
     val openApiVersion: String by settings
-    val dokkaVersion: String by settings
 
     repositories {
         mavenCentral()
@@ -15,7 +14,6 @@ pluginManagement {
         id("io.spring.dependency-management") version springDependencyManagementVersion
         id("org.jlleitschuh.gradle.ktlint") version ktlintVersion
         id("org.springdoc.openapi-gradle-plugin") version openApiVersion
-        id("org.jetbrains.dokka") version dokkaVersion
         jacoco
     }
 }
