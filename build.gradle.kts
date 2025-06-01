@@ -133,12 +133,9 @@ tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
-tasks.dokkaHtml {
-    outputs.dir(layout.buildDirectory.dir("dokka"))
-    dokkaSourceSets {
-        configureEach {
-            reportUndocumented.set(false)
-            skipDeprecated.set(true)
-        }
-    }
+openApi {
+    version = project.version
+    outputDir.set(layout.projectDirectory.dir("docs/openapi"))
+    outputFileName.set("openapi.json")
+    waitTimeInSeconds.set(10)
 }
