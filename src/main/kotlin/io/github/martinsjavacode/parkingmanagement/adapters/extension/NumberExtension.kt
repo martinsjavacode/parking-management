@@ -1,3 +1,3 @@
 package io.github.martinsjavacode.parkingmanagement.adapters.extension
 
-fun Int.percentOf(value: Int): Int = ((this / value) * 100)
+fun Int.percentOf(value: Int): Int = ((this.toDouble() / value) * 100).toInt()
