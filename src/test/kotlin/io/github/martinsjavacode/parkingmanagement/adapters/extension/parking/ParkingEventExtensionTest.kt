@@ -5,6 +5,7 @@ import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingE
 import io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.entity.ParkingEventEntity
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -15,21 +16,22 @@ class ParkingEventExtensionTest : DescribeSpec({
                 // Given
                 val now = LocalDateTime.now()
                 val exitTime = now.plusHours(2)
-                val parkingEvent = ParkingEvent(
-                    id = 1L,
-                    licensePlate = "ABC1234",
-                    entryTime = now,
-                    eventType = EventType.ENTRY,
-                    latitude = 10.123456,
-                    longitude = -20.654321,
-                    exitTime = exitTime,
-                    priceMultiplier = 1.25,
-                    amountPaid = BigDecimal("25.00")
-                )
-                
+                val parkingEvent =
+                    ParkingEvent(
+                        id = 1L,
+                        licensePlate = "ABC1234",
+                        entryTime = now,
+                        eventType = EventType.ENTRY,
+                        latitude = 10.123456,
+                        longitude = -20.654321,
+                        exitTime = exitTime,
+                        priceMultiplier = 1.25,
+                        amountPaid = BigDecimal("25.00"),
+                    )
+
                 // When
                 val result = parkingEvent.toEntity()
-                
+
                 // Then
                 result.id shouldBe 1L
                 result.licensePlate shouldBe "ABC1234"
@@ -42,28 +44,30 @@ class ParkingEventExtensionTest : DescribeSpec({
                 result.amountPaid shouldBe BigDecimal("25.00")
             }
         }
-        
+
         describe("ParkingEventEntity.toDomain") {
             it("should convert ParkingEventEntity to ParkingEvent domain model") {
                 // Given
                 val now = LocalDateTime.now()
                 val exitTime = now.plusHours(3)
-                val parkingEventEntity = ParkingEventEntity(
-                    id = 2L,
-                    licensePlate = "XYZ9876",
-                    entryTime = now,
-                    eventType = EventType.EXIT,
-                    latitude = 15.654321,
-                    longitude = -25.123456,
-                    exitTime = exitTime,
-                    priceMultiplier = 0.9,
-                    amountPaid = BigDecimal("18.00")
-                )
-                
+                val parkingEventEntity =
+                    ParkingEventEntity(
+                        id = 2L,
+                        licensePlate = "XYZ9876",
+                        entryTime = now,
+                        eventType = EventType.EXIT,
+                        latitude = 15.654321,
+                        longitude = -25.123456,
+                        exitTime = exitTime,
+                        priceMultiplier = 0.9,
+                        amountPaid = BigDecimal("18.00"),
+                    )
+
                 // When
                 val result = parkingEventEntity.toDomain()
-                
+
                 // Then
+                result.shouldBeInstanceOf<ParkingEvent>()
                 result.id shouldBe 2L
                 result.licensePlate shouldBe "XYZ9876"
                 result.entryTime shouldBe now

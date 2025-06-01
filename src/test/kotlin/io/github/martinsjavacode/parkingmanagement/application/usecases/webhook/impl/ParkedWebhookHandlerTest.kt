@@ -30,14 +30,15 @@ class ParkedWebhookHandlerTest : BehaviorSpec({
     val calculatePricingMultiplierHandler = mockk<CalculatePricingMultiplierHandler>()
     val updateOrInitializeDailyRevenueHandler = mockk<UpdateOrInitializeDailyRevenueHandler>()
 
-    val parkedWebhookHandler = ParkedWebhookHandler(
-        messageSource = messageSource,
-        traceContext = traceContext,
-        parkingEventRepository = parkingEventRepository,
-        getParkingByCoordinatesOrThrowHandler = getParkingByCoordinatesOrThrowHandler,
-        calculatePricingMultiplierHandler = calculatePricingMultiplierHandler,
-        initializeDailyRevenueHandler = updateOrInitializeDailyRevenueHandler
-    )
+    val parkedWebhookHandler =
+        ParkedWebhookHandler(
+            messageSource = messageSource,
+            traceContext = traceContext,
+            parkingEventRepository = parkingEventRepository,
+            getParkingByCoordinatesOrThrowHandler = getParkingByCoordinatesOrThrowHandler,
+            calculatePricingMultiplierHandler = calculatePricingMultiplierHandler,
+            initializeDailyRevenueHandler = updateOrInitializeDailyRevenueHandler,
+        )
 
     beforeTest {
         clearAllMocks()
@@ -54,45 +55,50 @@ class ParkedWebhookHandlerTest : BehaviorSpec({
         val longitude = -46.655981
         val priceMultiplier = 1.1
 
-        val validEvent = WebhookEvent(
-            licensePlate = licensePlate,
-            lat = latitude,
-            lng = longitude,
-            entryTime = null,
-            exitTime = null,
-            eventType = EventType.PARKED
-        )
+        val validEvent =
+            WebhookEvent(
+                licensePlate = licensePlate,
+                lat = latitude,
+                lng = longitude,
+                entryTime = null,
+                exitTime = null,
+                eventType = EventType.PARKED,
+            )
 
-        val entryEvent = ParkingEvent(
-            id = 1L,
-            licensePlate = licensePlate,
-            latitude = 0.0, // Initial coordinates are not important for entry event
-            longitude = 0.0,
-            entryTime = now.minusHours(1),
-            exitTime = null,
-            eventType = EventType.ENTRY,
-            priceMultiplier = 1.0,
-            amountPaid = BigDecimal.ZERO
-        )
+        val entryEvent =
+            ParkingEvent(
+                id = 1L,
+                licensePlate = licensePlate,
+                // Initial coordinates are not important for entry event
+                latitude = 0.0,
+                longitude = 0.0,
+                entryTime = now.minusHours(1),
+                exitTime = null,
+                eventType = EventType.ENTRY,
+                priceMultiplier = 1.0,
+                amountPaid = BigDecimal.ZERO,
+            )
 
-        val parking = Parking(
-            id = 1L,
-            sector = "A",
-            basePrice = BigDecimal("10.00"),
-            maxCapacity = 100,
-            openHour = LocalTime.of(8, 0),
-            closeHour = LocalTime.of(20, 0),
-            durationLimitMinutes = 60,
-            spots = emptyFlow()
-        )
+        val parking =
+            Parking(
+                id = 1L,
+                sector = "A",
+                basePrice = BigDecimal("10.00"),
+                maxCapacity = 100,
+                openHour = LocalTime.of(8, 0),
+                closeHour = LocalTime.of(20, 0),
+                durationLimitMinutes = 60,
+                spots = emptyFlow(),
+            )
 
-        val revenue = Revenue(
-            id = 1L,
-            parkingId = 1L,
-            date = now.toLocalDate(),
-            amount = BigDecimal.ZERO,
-            currency = CurrencyType.BRL
-        )
+        val revenue =
+            Revenue(
+                id = 1L,
+                parkingId = 1L,
+                date = now.toLocalDate(),
+                amount = BigDecimal.ZERO,
+                currency = CurrencyType.BRL,
+            )
 
         `when`("The event has an invalid type") {
             val invalidEvent = validEvent.copy(eventType = EventType.ENTRY)
@@ -159,7 +165,7 @@ class ParkedWebhookHandlerTest : BehaviorSpec({
                         eventType = EventType.PARKED,
                         latitude = latitude,
                         longitude = longitude,
-                        amountPaid = any()
+                        amountPaid = any(),
                     )
                 } returns revenue
             }
@@ -174,13 +180,15 @@ class ParkedWebhookHandlerTest : BehaviorSpec({
 
                 // Verify the event was saved correctly
                 coVerify(exactly = 1) {
-                    parkingEventRepository.save(match {
-                        it.licensePlate == licensePlate &&
-                        it.eventType == EventType.PARKED &&
-                        it.latitude == latitude &&
-                        it.longitude == longitude &&
-                        it.priceMultiplier == priceMultiplier
-                    })
+                    parkingEventRepository.save(
+                        match {
+                            it.licensePlate == licensePlate &&
+                                it.eventType == EventType.PARKED &&
+                                it.latitude == latitude &&
+                                it.longitude == longitude &&
+                                it.priceMultiplier == priceMultiplier
+                        },
+                    )
                 }
 
                 // Verify revenue was initialized
@@ -189,36 +197,39 @@ class ParkedWebhookHandlerTest : BehaviorSpec({
                         eventType = EventType.PARKED,
                         latitude = latitude,
                         longitude = longitude,
-                        amountPaid = any()
+                        amountPaid = any(),
                     )
                 }
             }
         }
 
         `when`("Multiple events exist for the license plate but only one is ENTRY") {
-            val anotherParkedEvent = ParkingEvent(
-                id = 2L,
-                licensePlate = licensePlate,
-                latitude = latitude,
-                longitude = longitude,
-                entryTime = now.minusHours(2),
-                exitTime = null,
-                eventType = EventType.PARKED,
-                priceMultiplier = 1.0,
-                amountPaid = BigDecimal.ZERO
-            )
+            val anotherParkedEvent =
+                ParkingEvent(
+                    id = 2L,
+                    licensePlate = licensePlate,
+                    latitude = latitude,
+                    longitude = longitude,
+                    entryTime = now.minusHours(2),
+                    exitTime = null,
+                    eventType = EventType.PARKED,
+                    priceMultiplier = 1.0,
+                    amountPaid = BigDecimal.ZERO,
+                )
 
             beforeTest {
                 coEvery { getParkingByCoordinatesOrThrowHandler.handle(latitude, longitude) } returns parking
                 coEvery { calculatePricingMultiplierHandler.handle(latitude, longitude) } returns priceMultiplier
-                coEvery { parkingEventRepository.findAllByLicensePlate(licensePlate) } returns flowOf(entryEvent, anotherParkedEvent)
+                coEvery {
+                    parkingEventRepository.findAllByLicensePlate(licensePlate)
+                } returns flowOf(entryEvent, anotherParkedEvent)
                 coEvery { parkingEventRepository.save(any()) } just Runs
                 coEvery {
                     updateOrInitializeDailyRevenueHandler.handle(
                         eventType = EventType.PARKED,
                         latitude = latitude,
                         longitude = longitude,
-                        amountPaid = any()
+                        amountPaid = any(),
                     )
                 } returns revenue
             }
@@ -228,10 +239,12 @@ class ParkedWebhookHandlerTest : BehaviorSpec({
 
                 coVerify(exactly = 1) { parkingEventRepository.findAllByLicensePlate(licensePlate) }
                 coVerify(exactly = 1) {
-                    parkingEventRepository.save(match {
-                        it.id == 1L &&
-                        it.eventType == EventType.PARKED
-                    })
+                    parkingEventRepository.save(
+                        match {
+                            it.id == 1L &&
+                                it.eventType == EventType.PARKED
+                        },
+                    )
                 }
             }
         }

@@ -5,7 +5,6 @@ import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.par
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
 import org.springframework.stereotype.Service
 
-
 @Service
 class GetParkingByCoordinatesOrThrowHandlerImpl(
     private val parkingCustomQueryRepository: ParkingCustomQueryRepositoryPort,
