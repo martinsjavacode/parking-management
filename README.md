@@ -485,7 +485,10 @@ performance-tests/
 ├── scenarios/                 # Cenários de teste
 │   ├── parking-entry.js       # Cenário de entrada no estacionamento
 │   ├── parking-exit.js        # Cenário de saída do estacionamento
-│   └── get-parking-status.js  # Cenário de consulta de status
+│   ├── parking-parked.js      # Cenário de veículos estacionados
+│   ├── get-spot-status.js     # Cenário de consulta de status de vagas
+│   ├── get-plate-status.js    # Cenário de consulta de status por placa
+│   └── get-revenue.js         # Cenário de consulta de receita
 └── package.json               # Configuração do projeto
 ```
 

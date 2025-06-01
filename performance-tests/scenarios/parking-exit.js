@@ -7,7 +7,7 @@ export default function (license_plate) {
     const exitPayload = JSON.stringify({
         event_type: 'EXIT',
         license_plate,
-        exit_time: new Date().toISOString(),
+        exit_time: new Date(),
     });
 
     const params = {
