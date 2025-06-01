@@ -1,0 +1,391 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Parking Management",
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3003",
+      "description": "Generated server url"
+    }
+  ],
+  "paths": {
+    "/webhook": {
+      "post": {
+        "tags": [
+          "Webhooks"
+        ],
+        "summary": "Handle parking events",
+        "operationId": "handleWebhook",
+        "requestBody": {
+          "description": "Details of the parking event",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Event processed successfully",
+            "content": {}
+          },
+          "400": {
+            "description": "Invalid event data",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "202": {
+            "description": "Accepted",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/spot-status": {
+      "post": {
+        "tags": [
+          "Parking Spot"
+        ],
+        "summary": "Check the status of a parking spot",
+        "operationId": "changeSpotStatus",
+        "requestBody": {
+          "description": "Coordinates of the parking spot to be queried",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpotStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Parking spot status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event data",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/plate-status": {
+      "post": {
+        "tags": [
+          "Vehicle"
+        ],
+        "summary": "Get vehicle status by license plate",
+        "operationId": "retrievePlateStatus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LicensePlateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Vehicle status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlateStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event data",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/parking": {
+      "post": {
+        "tags": [
+          "Parking"
+        ],
+        "summary": "Fetch garage data from simulator and save to database",
+        "description": "This endpoint fetches garage data from the external simulator `/garage` endpoint and saves the information into the `parking` and `parking_spots` tables.",
+        "operationId": "garageSync",
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {}
+          }
+        }
+      }
+    },
+    "/revenue": {
+      "get": {
+        "tags": [
+          "Revenue"
+        ],
+        "summary": "Get accumulated revenue by sector and date",
+        "operationId": "billingConsultation",
+        "requestBody": {
+          "description": "Query revenue by sector and date",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DailyBillingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Revenue retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyBillingResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event data",
+            "content": {
+              "application/json": {}
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WebhookEvent": {
+        "type": "object",
+        "properties": {
+          "license_plate": {
+            "type": "string",
+            "description": "License plate of the vehicle",
+            "example": "ZUL0001"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double",
+            "description": "Latitude of the vehicle",
+            "example": -23.5505199
+          },
+          "lng": {
+            "type": "number",
+            "format": "double",
+            "description": "Longitude of the vehicle",
+            "example": -46.6333094
+          },
+          "entry_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of vehicle entry",
+            "example": "2025-01-01T12:00:00.000Z"
+          },
+          "exit_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Time of vehicle departure",
+            "example": "2025-01-01T12:00:00.000Z"
+          },
+          "event_type": {
+            "type": "string",
+            "description": "Type of the event",
+            "enum": [
+              "ENTRY",
+              "PARKED",
+              "EXIT"
+            ],
+            "example": "ENTRY"
+          }
+        },
+        "required": [
+          "event_type",
+          "license_plate"
+        ]
+      },
+      "SpotStatusRequest": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "format": "double",
+            "description": "Latitude of the parking spot",
+            "example": 40.7128
+          },
+          "lng": {
+            "type": "number",
+            "format": "double",
+            "description": "Longitude of the parking spot",
+            "example": -74.006
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "SpotStatusResponse": {
+        "type": "object",
+        "properties": {
+          "ocupied": {
+            "type": "boolean"
+          },
+          "license_plate": {
+            "type": "string"
+          },
+          "price_until_now": {
+            "type": "number"
+          },
+          "entry_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_parked": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "entry_time",
+          "license_plate",
+          "ocupied",
+          "price_until_now",
+          "time_parked"
+        ]
+      },
+      "PlateStatusResponse": {
+        "type": "object",
+        "properties": {
+          "license_plate": {
+            "type": "string"
+          },
+          "price_until_now": {
+            "type": "number"
+          },
+          "entry_time": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "time_parked": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lat": {
+            "type": "number",
+            "format": "double"
+          },
+          "lng": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "required": [
+          "entry_time",
+          "lat",
+          "license_plate",
+          "lng",
+          "price_until_now",
+          "time_parked"
+        ]
+      },
+      "LicensePlateRequest": {
+        "type": "object",
+        "properties": {
+          "license_plate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "license_plate"
+        ]
+      },
+      "DailyBillingRequest": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "sector": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "sector"
+        ]
+      },
+      "DailyBillingResponse": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string",
+            "enum": [
+              "BRL"
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "amount",
+          "currency",
+          "timestamp"
+        ]
+      }
+    }
+  }
+}
