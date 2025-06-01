@@ -5,13 +5,24 @@ import io.github.martinsjavacode.parkingmanagement.infra.persistence.parking.ent
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
+import org.springframework.data.repository.query.Param
 
 interface ParkingEventRepository : CoroutineCrudRepository<ParkingEventEntity, Long> {
     suspend fun findByLicensePlate(licensePlate: String): Flow<ParkingEventEntity>?
 
-    suspend fun findByLicensePlateAndEventType(
-        licensePlate: String,
-        eventType: EventType,
+    @Query(
+        """
+        SELECT *
+        FROM parking_events
+        WHERE license_plate = :license_plate
+            AND event_type = :event_type
+        ORDER BY entry_time DESC
+        LIMIT 1
+    """,
+    )
+    suspend fun findLastByLicensePlateAndEventType(
+        @Param("licensePlate") licensePlate: String,
+        @Param("eventType") eventType: EventType,
     ): ParkingEventEntity
 
     @Query(
@@ -25,7 +36,7 @@ interface ParkingEventRepository : CoroutineCrudRepository<ParkingEventEntity, L
     """,
     )
     suspend fun findLastByLatitudeAndLongitude(
-        latitude: Double,
-        longitude: Double,
+        @Param("latitude") latitude: Double,
+        @Param("longitude") longitude: Double,
     ): ParkingEventEntity
 }

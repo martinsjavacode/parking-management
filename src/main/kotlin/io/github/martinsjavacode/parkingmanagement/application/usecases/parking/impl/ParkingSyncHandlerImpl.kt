@@ -25,13 +25,19 @@ class ParkingSyncHandlerImpl(
         withContext(ioDispatcher) {
             externalParkingApi.fetchGarageConfig()
         }.collect { parking ->
-            runCatching {
-                parkingRepository.findBySectorName(parking.sector)
-            }.onSuccess { parkingFound ->
+            val result =
+                runCatching {
+                    parkingRepository.findBySectorName(parking.sector)
+                }
+
+            result.onSuccess { parkingFound ->
                 parking.spots.collect { spot ->
-                    runCatching {
-                        parkingSpotRepository.findByCoordinates(spot.latitude, spot.longitude)
-                    }.onFailure {
+                    val spotResult =
+                        runCatching {
+                            parkingSpotRepository.findByCoordinates(spot.latitude, spot.longitude)
+                        }
+
+                    spotResult.onFailure {
                         parkingSpotRepository.save(spot.copy(parkingId = parkingFound.id))
                     }
                 }

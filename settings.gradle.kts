@@ -15,6 +15,7 @@ pluginManagement {
         id("io.spring.dependency-management") version springDependencyManagementVersion
         id("org.jlleitschuh.gradle.ktlint") version ktlintVersion
         id("org.springdoc.openapi-gradle-plugin") version openApiVersion
+        jacoco
     }
 }
 

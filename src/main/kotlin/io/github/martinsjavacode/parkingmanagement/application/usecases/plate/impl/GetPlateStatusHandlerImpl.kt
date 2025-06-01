@@ -37,7 +37,11 @@ class GetPlateStatusHandlerImpl(
 
     private suspend fun fetchLastParkedEventByLicense(licensePlate: String) =
         withContext(dispatcherIO) {
-            parkingEventRepository.findLastParkingEventByLicenseAndEventType(licensePlate, EventType.PARKED)
+            runCatching {
+                parkingEventRepository.findLastParkingEventByLicenseAndEventType(licensePlate, EventType.PARKED)
+            }.getOrElse {
+                parkingEventRepository.findLastParkingEventByLicenseAndEventType(licensePlate, EventType.EXIT)
+            }
         }
 
     private suspend fun fetchParkingDetails(

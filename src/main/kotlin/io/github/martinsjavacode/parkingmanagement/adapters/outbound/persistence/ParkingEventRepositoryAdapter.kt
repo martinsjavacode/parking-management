@@ -85,13 +85,14 @@ class ParkingEventRepositoryAdapter(
         eventType: EventType,
     ): ParkingEvent =
         runCatching {
-            parkingEventRepository.findByLicensePlateAndEventType(
+            parkingEventRepository.findLastByLicensePlateAndEventType(
                 licensePlate = licensePlate,
                 eventType = eventType,
             ).toDomain()
-        }.getOrElse {
-            logger.error("No active PARKED event found for the license plate: $licensePlate")
-            throw ParkingEventNotFoundException(
+        }.onFailure {
+            logger.error("No ${eventType.name} event found for the license plate: $licensePlate")
+        }.getOrNull()
+            ?: throw ParkingEventNotFoundException(
                 PARKING_EVENT_NOT_FOUND.code(),
                 messageSource.getMessage(
                     PARKING_EVENT_NOT_FOUND.messageKey(),
@@ -106,7 +107,6 @@ class ParkingEventRepositoryAdapter(
                 traceContext.traceId(),
                 ExceptionType.PERSISTENCE_REQUEST,
             )
-        }
 
     override suspend fun findMostRecentByCoordinates(
         latitude: Double,

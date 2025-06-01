@@ -1,10 +1,10 @@
-package io.github.martinsjavacode.parkingmanagement.infra.persistence.revenue
+package io.github.martinsjavacode.parkingmanagement.adapters.outbound.persistence
 
 import io.github.martinsjavacode.parkingmanagement.adapters.extension.revenue.toDomain
 import io.github.martinsjavacode.parkingmanagement.adapters.extension.revenue.toEntity
-import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType.BRL
+import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.REVENUE_NOT_SAVED
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.revenue.RevenueRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
 import io.github.martinsjavacode.parkingmanagement.infra.config.TraceContext
@@ -35,7 +35,7 @@ class RevenueRepositoryAdapter(
             revenueRepository.findByParkingIdAndDateAndCurrency(
                 parkingId,
                 date,
-                currency = BRL,
+                currency = CurrencyType.BRL,
             )?.toDomain()
         }.getOrNull()
     }
@@ -50,14 +50,14 @@ class RevenueRepositoryAdapter(
                 it,
             )
             throw RevenueSaveFailedException(
-                REVENUE_NOT_SAVED.code(),
+                InternalCodeType.REVENUE_NOT_SAVED.code(),
                 messageSource.getMessage(
-                    REVENUE_NOT_SAVED.messageKey(),
+                    InternalCodeType.REVENUE_NOT_SAVED.messageKey(),
                     null,
                     locale,
                 ),
                 messageSource.getMessage(
-                    "${REVENUE_NOT_SAVED.messageKey()}.friendly",
+                    "${InternalCodeType.REVENUE_NOT_SAVED.messageKey()}.friendly",
                     null,
                     locale,
                 ),

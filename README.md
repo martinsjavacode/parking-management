@@ -373,6 +373,51 @@ CREATE INDEX IDX_REVENUE_ON_PARKING_DATE ON revenues (parking_id, date);
     ```shell
    docker run -d --network="host" cfontes0estapar/garage-sim:1.0.0
    ```
+
+## Testes de Carga
+
+O projeto inclui testes de carga utilizando k6 para avaliar o desempenho da API sob diferentes condições de tráfego.
+
+### Estrutura dos Testes de Carga
+
+```
+performance-tests/
+├── config.js                  # Configurações gerais dos testes
+├── load-test.js               # Teste de carga constante
+├── stress-test.js             # Teste de estresse com aumento gradual
+├── spike-test.js              # Teste de pico de carga
+├── scenarios/                 # Cenários de teste
+│   ├── parking-entry.js       # Cenário de entrada no estacionamento
+│   ├── parking-exit.js        # Cenário de saída do estacionamento
+│   └── get-parking-status.js  # Cenário de consulta de status
+└── package.json               # Configuração do projeto
+```
+
+### Executando os Testes de Carga
+
+Certifique-se de ter o k6 instalado (https://k6.io/docs/getting-started/installation/).
+
+```bash
+# Navegue até a pasta de testes de performance
+cd performance-tests
+
+# Teste de carga com 10 VUs por 60 segundos
+k6 run load-test.js
+
+# Teste de estresse com aumento gradual até 30 VUs
+k6 run stress-test.js
+
+# Teste de pico com 50 VUs
+k6 run spike-test.js
+```
+
+### Tipos de Testes Implementados
+
+1. **Teste de Carga (Load Test)**: Simula um número constante de usuários acessando o sistema simultaneamente por um período prolongado.
+
+2. **Teste de Estresse (Stress Test)**: Aumenta gradualmente o número de usuários para identificar o ponto de ruptura do sistema.
+
+3. **Teste de Pico (Spike Test)**: Simula um aumento repentino e significativo no tráfego para avaliar como o sistema se comporta sob picos de carga.
 ----
 ## Documentação OpenAPI
 
@@ -432,4 +477,57 @@ http://localhost:{SERVER_PORT}/swagger-ui.html
         ),
     ],
 )
+```
+
+----
+## Testes
+
+### Testes Unitários e de Integração
+
+O projeto utiliza JUnit 5, Kotest e MockK para testes unitários e de integração, garantindo a qualidade do código e a correta implementação das regras de negócio.
+
+### Testes de Carga
+
+O projeto inclui testes de carga utilizando k6 para avaliar o desempenho da API sob diferentes condições de tráfego.
+
+#### Estrutura dos Testes de Carga
+
+```
+performance-tests/
+├── config.js                  # Configurações gerais dos testes
+├── load-test.js               # Teste de carga constante
+├── stress-test.js             # Teste de estresse com aumento gradual
+├── spike-test.js              # Teste de pico de carga
+├── scenarios/                 # Cenários de teste
+│   ├── parking-entry.js       # Cenário de entrada no estacionamento
+│   ├── parking-exit.js        # Cenário de saída do estacionamento
+│   └── get-parking-status.js  # Cenário de consulta de status
+└── package.json               # Configuração do projeto
+```
+
+#### Executando os Testes de Carga
+
+Certifique-se de ter o k6 instalado (https://k6.io/docs/getting-started/installation/).
+
+```bash
+# Navegue até a pasta de testes de performance
+cd performance-tests
+
+# Teste de carga com 10 VUs por 60 segundos
+k6 run load-test.js
+
+# Teste de estresse com aumento gradual até 30 VUs
+k6 run stress-test.js
+
+# Teste de pico com 50 VUs
+k6 run spike-test.js
+```
+
+#### Tipos de Testes Implementados
+
+1. **Teste de Carga (Load Test)**: Simula um número constante de usuários acessando o sistema simultaneamente por um período prolongado.
+
+2. **Teste de Estresse (Stress Test)**: Aumenta gradualmente o número de usuários para identificar o ponto de ruptura do sistema.
+
+3. **Teste de Pico (Spike Test)**: Simula um aumento repentino e significativo no tráfego para avaliar como o sistema se comporta sob picos de carga.
 ```

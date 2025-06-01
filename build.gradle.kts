@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management")
     id("org.jlleitschuh.gradle.ktlint")
     id("org.springdoc.openapi-gradle-plugin")
+    jacoco
 }
 
 group = "io.github.martinsjavacode"
@@ -75,4 +76,58 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+jacoco {
+    toolVersion = "${properties["jacocoVersion"]}"
+    reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
+}
+
+val configurableFileTrees =
+    fileTree(
+        layout.buildDirectory.dir("classes/kotlin/main"),
+    ).exclude(
+        listOf(
+            "**/config/*",
+            "**/infra/*",
+            "**/model/*",
+            "**/enums/*",
+            "**/gateway/*",
+            "**/request/*",
+            "**/response/*",
+            "**/ParkingManagementApplication*",
+        ),
+    )
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        csv.required.set(false)
+
+        html.outputLocation.set(layout.buildDirectory.dir("jacoco/tests/html"))
+    }
+
+    classDirectories.setFrom(configurableFileTrees)
+
+    dependsOn(tasks.test)
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = BigDecimal.valueOf(.9)
+            }
+        }
+    }
+
+    classDirectories.setFrom(configurableFileTrees)
+
+    dependsOn(tasks.jacocoTestReport)
+}
+
+tasks.check {
+    dependsOn(tasks.jacocoTestCoverageVerification)
 }
