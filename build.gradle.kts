@@ -140,7 +140,7 @@ tasks.check {
 
 openApi {
     version = project.version
-    outputDir.set(layout.projectDirectory.dir("docs/openapi"))
+    outputDir.set(layout.projectDirectory.dir("openapi"))
     outputFileName.set("openapi.json")
     waitTimeInSeconds.set(10)
 }

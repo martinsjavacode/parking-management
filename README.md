@@ -48,7 +48,7 @@ O projeto segue uma arquitetura hexagonal (também conhecida como ports and adap
 • **Testes**: JUnit 5, Kotest, MockK
 
 ### Estrutura de Pacotes
-
+```
 io.github.martinsjavacode.parkingmanagement/
 ├── adapters/
 │   ├── extension/                  # Extensões para conversão entre modelos
@@ -122,7 +122,7 @@ io.github.martinsjavacode.parkingmanagement/
 │           ├── entity/
 │           └── repository/
 └── ParkingManagementApplication.kt # Classe principal da aplicação
-
+```
 
 ### Principais Componentes
 
