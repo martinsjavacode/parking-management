@@ -24,6 +24,17 @@ import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalTime
 
+/**
+ * Handler for processing vehicle entry events in parking lots.
+ *
+ * This class is responsible for validating and processing ENTRY events,
+ * ensuring that the parking lot is open and there are no license plate conflicts.
+ *
+ * @property messageSource Source for internationalized messages
+ * @property traceContext Context for logging and tracing
+ * @property parkingEventRepository Repository for parking events
+ * @property parkingRepository Repository for parking configurations
+ */
 @Component
 class EntryWebhookHandler(
     private val messageSource: MessageSource,
@@ -36,6 +47,18 @@ class EntryWebhookHandler(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
 
+    /**
+     * Processes a vehicle entry event.
+     *
+     * Validates the event data, checks for open parking lots,
+     * and logs the entry event if all conditions are met.
+     *
+     * @param event The webhook event to be processed
+     * @throws IllegalArgumentException If the event type is invalid
+     * @throws IllegalStateException If the entry timestamp is null
+     * @throws LicensePlateConflictException If an active event already exists for the license plate
+     * @throws NoParkingOpenException If no parking lots are open
+     */
     @Transactional
     suspend fun handle(event: WebhookEvent) {
         logger.info("New ENTRY event received: licensePlate={}, entryTime={}", event.licensePlate, event.entryTime)

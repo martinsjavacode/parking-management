@@ -13,10 +13,25 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * REST Controller for vehicle-related operations.
+ *
+ * Provides endpoints to query information about parked vehicles
+ * in the system.
+ *
+ * @property getPlateStatusHandler Handler to fetch vehicle status by license plate
+ */
 @RestController
 class VehicleRestController(
     private val getPlateStatusHandler: GetPlateStatusHandler,
 ) {
+    /**
+     * Endpoint to query the status of a vehicle by its license plate.
+     *
+     * @param request Request containing the vehicle's license plate
+     * @return Response with the vehicle status
+     * @throws LicensePlateNotFoundException If no vehicle with the provided license plate is found
+     */
     @Operation(
         summary = "Get vehicle status by license plate",
         tags = ["Vehicle"],

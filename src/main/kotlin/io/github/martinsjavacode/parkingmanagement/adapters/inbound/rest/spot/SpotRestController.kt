@@ -10,10 +10,25 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * REST Controller for parking spot-related operations.
+ *
+ * Provides endpoints to query information about specific parking spots
+ * in the system.
+ *
+ * @property getParkingSpotStatusHandler Handler to fetch parking spot status
+ */
 @RestController
 class SpotRestController(
     private val getParkingSpotStatusHandler: GetParkingSpotStatusHandler,
 ) {
+    /**
+     * Endpoint to query the status of a parking spot by coordinates.
+     *
+     * @param request Request containing the parking spot coordinates
+     * @return Response with the parking spot status
+     * @throws ParkingSpotNotFoundException If no parking spot is found at the given coordinates
+     */
     @Operation(
         summary = "Check the status of a parking spot",
         tags = ["Parking Spot"],

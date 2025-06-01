@@ -6,6 +6,20 @@ import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
+/**
+ * Represents an event received via a webhook from external systems.
+ *
+ * This class contains raw data received from external systems,
+ * such as parking simulators, for processing by the system.
+ *
+ * @property licensePlate License plate of the vehicle associated with the event
+ * @property eventType Type of the event (ENTRY, PARKED, EXIT)
+ * @property timestamp Timestamp of the event, mainly used for entry events
+ * @property entryTime Entry time, used for entry events
+ * @property exitTime Exit time, used for exit events
+ * @property lat Latitude coordinate where the event occurred
+ * @property lng Longitude coordinate where the event occurred
+ */
 @JsonAutoDetect
 data class WebhookEvent(
     @JsonProperty("license_plate")

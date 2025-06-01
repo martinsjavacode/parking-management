@@ -10,11 +10,24 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
+/**
+ * REST Controller to receive webhook events.
+ *
+ * Provides an endpoint to receive events from external systems,
+ * such as parking simulators.
+ *
+ * @property webHookHandlerParking Handler to process webhook events
+ */
 @RestController
 @RequestMapping("/webhook")
 class WebhookEvent(
     private val webHookHandlerParking: ParkingWebhookHandler,
 ) {
+    /**
+     * Endpoint to receive and process webhook events.
+     *
+     * @param event The webhook event to process
+     */
     @Operation(
         summary = "Handle parking events",
         tags = ["Webhooks"],

@@ -1,5 +1,11 @@
 package io.github.martinsjavacode.parkingmanagement.domain.enums
 
+/**
+ * Enum representing internal error codes in the system.
+ *
+ * Defines specific codes for different types of errors,
+ * aiding in identification and handling.
+ */
 enum class InternalCodeType(val code: String, val messageKey: String) {
     // Parking
     PARKING_NOT_SAVED("PRK-001", "parking.not.saved"),

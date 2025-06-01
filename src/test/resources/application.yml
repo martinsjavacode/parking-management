@@ -12,6 +12,9 @@ spring:
   sql:
     init:
       mode: always
+  docker:
+    compose:
+      enabled: false
 
 client:
   garage:

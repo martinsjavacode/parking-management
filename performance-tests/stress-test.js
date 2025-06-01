@@ -5,7 +5,7 @@ import { STRESS_TEST_VUS, STRESS_TEST_DURATION } from './config.js';
 // Importar cenários
 import parkingEntry from './scenarios/parking-entry.js';
 import parkingExit from './scenarios/parking-exit.js';
-import getParkingStatus from './scenarios/get-parking-status.js';
+import getParkingStatus from './scenarios/get-spot-status.js';
 
 export const options = {
   stages: [
@@ -25,15 +25,15 @@ export default function() {
   group('Parking Entry', () => {
     parkingEntry();
   });
-  
+
   sleep(1);
-  
+
   group('Parking Exit', () => {
     parkingExit();
   });
-  
+
   sleep(1);
-  
+
   group('Parking Status', () => {
     getParkingStatus();
   });

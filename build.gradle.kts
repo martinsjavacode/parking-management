@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management")
     id("org.jlleitschuh.gradle.ktlint")
     id("org.springdoc.openapi-gradle-plugin")
+    id("org.jetbrains.dokka")
     jacoco
 }
 
@@ -130,4 +131,14 @@ tasks.jacocoTestCoverageVerification {
 
 tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+tasks.dokkaHtml {
+    outputs.dir(layout.buildDirectory.dir("dokka"))
+    dokkaSourceSets {
+        configureEach {
+            reportUndocumented.set(false)
+            skipDeprecated.set(true)
+        }
+    }
 }

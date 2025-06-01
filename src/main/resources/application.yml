@@ -19,6 +19,16 @@ spring:
     url: jdbc:postgresql://localhost:5432/parking_management
     user: postgres
     password: postgres
+  docker:
+    compose:
+      enabled: true
+      file: src/main/docker/docker-compose.yml
+      profiles:
+        active: ${spring.profiles.active}
+      start:
+        arguments: -d
+      stop:
+        command: down
 
 resilience4j:
   circuitbreaker:

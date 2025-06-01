@@ -27,6 +27,18 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
+/**
+ * Handler for processing vehicle exit events from parking lots.
+ *
+ * This class is responsible for validating and processing EXIT events,
+ * calculating the charge, and updating daily revenue.
+ *
+ * @property messageSource Source for internationalized messages
+ * @property traceContext Context for logging and tracing
+ * @property parkingEventRepository Repository for parking events
+ * @property getParkingByCoordinatesOrThrowHandler Handler to fetch parking by coordinates
+ * @property updateDailyRevenueHandler Handler to update daily revenue
+ */
 @OptIn(ExperimentalCoroutinesApi::class)
 @Component
 class ExitWebhookHandler(
@@ -41,6 +53,16 @@ class ExitWebhookHandler(
 
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
 
+    /**
+     * Processes a vehicle exit event.
+     *
+     * Validates the event data, fetches the corresponding parking event,
+     * calculates the charge, and updates the daily revenue.
+     *
+     * @param event The webhook event to be processed
+     * @throws IllegalArgumentException If the event type is invalid
+     * @throws NoParkedEventFoundException If no parking event is found for the license plate
+     */
     @Transactional
     suspend fun handle(event: WebhookEvent) {
         logger.info("New exit event received: {}", event.licensePlate)

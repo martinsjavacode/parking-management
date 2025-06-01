@@ -6,6 +6,12 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+/**
+ * Object containing date and time-related rules for the system.
+ *
+ * This singleton object implements utility functions for handling
+ * and validating dates and times in the parking system context.
+ */
 object DateTimeRules {
     /**
      * Converts a string to LocalTime using a specified pattern.

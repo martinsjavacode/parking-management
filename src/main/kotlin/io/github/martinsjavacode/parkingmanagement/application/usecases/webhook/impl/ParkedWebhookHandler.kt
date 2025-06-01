@@ -22,6 +22,19 @@ import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
+/**
+ * Handler for processing vehicle parking events.
+ *
+ * This class is responsible for validating and processing PARKED events,
+ * applying dynamic pricing multipliers based on sector occupancy.
+ *
+ * @property messageSource Source for internationalized messages
+ * @property traceContext Context for logging and tracing
+ * @property parkingEventRepository Repository for parking events
+ * @property getParkingByCoordinatesOrThrowHandler Handler to fetch parking by coordinates
+ * @property calculatePricingMultiplierHandler Handler to calculate pricing multiplier
+ * @property initializeDailyRevenueHandler Handler to initialize daily revenue
+ */
 @Component
 class ParkedWebhookHandler(
     private val messageSource: MessageSource,
@@ -37,6 +50,17 @@ class ParkedWebhookHandler(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val dispatcherIO = Dispatchers.IO.limitedParallelism(10)
 
+    /**
+     * Processes a vehicle parking event.
+     *
+     * Validates the event data, fetches the corresponding entry event,
+     * calculates the dynamic pricing multiplier, and logs the parking event.
+     * Also initializes the daily revenue record if needed.
+     *
+     * @param event The webhook event to be processed
+     * @throws IllegalArgumentException If the event type is invalid
+     * @throws EntryEventNotFoundException If no entry event is found for the license plate
+     */
     @Transactional
     suspend fun handle(event: WebhookEvent) {
         logger.info("New parked event received: {}", event.licensePlate)

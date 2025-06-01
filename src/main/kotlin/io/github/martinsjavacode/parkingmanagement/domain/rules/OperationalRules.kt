@@ -5,7 +5,25 @@ import java.math.RoundingMode
 import java.time.Duration
 import java.time.LocalDateTime
 
+/**
+ * Object containing the operational rules for the parking system.
+ *
+ * This singleton object implements business rules related to dynamic pricing,
+ * coordinate validation, and parking fee calculation.
+ */
 object OperationalRules {
+    /**
+     * Determines the price multiplier based on the parking lot occupancy rate.
+     *
+     * Implements the dynamic pricing rule:
+     * - Occupancy < 25%: 10% discount (multiplier 0.9)
+     * - Occupancy between 25% and 50%: base price (multiplier 1.0)
+     * - Occupancy between 50% and 75%: 10% surcharge (multiplier 1.1)
+     * - Occupancy > 75%: 25% surcharge (multiplier 1.25)
+     *
+     * @param occupancyRate Parking lot occupancy rate as a percentage (0-100)
+     * @return Price multiplier to be applied
+     */
     fun priceMultiplierForOccupancyRate(occupancyRate: Int): Double =
         when {
             occupancyRate < 25 -> 0.9
@@ -14,6 +32,17 @@ object OperationalRules {
             else -> 1.25
         }
 
+    /**
+     * Validates if the provided geographic coordinates are valid.
+     *
+     * Ensures that coordinates are not null and within valid bounds:
+     * - Latitude: between -90.0 and 90.0
+     * - Longitude: between -180.0 and 180.0
+     *
+     * @param latitude Latitude coordinate to validate
+     * @param longitude Longitude coordinate to validate
+     * @throws IllegalStateException If the coordinates are invalid
+     */
     fun assertValidCoordinates(
         latitude: Double?,
         longitude: Double?,
@@ -24,6 +53,19 @@ object OperationalRules {
         }
     }
 
+    /**
+     * Calculates the parking fee.
+     *
+     * The calculation is based on the parking duration, base price, duration limit,
+     * and dynamic price multiplier.
+     *
+     * @param entryTime Vehicle entry time
+     * @param exitTime Vehicle exit time
+     * @param basePrice Base price for parking
+     * @param durationLimitMinutes Time limit in minutes for the base charge period
+     * @param priceMultiplier Price multiplier based on occupancy
+     * @return Parking fee to be charged
+     */
     fun calculateParkingFee(
         entryTime: LocalDateTime,
         exitTime: LocalDateTime,

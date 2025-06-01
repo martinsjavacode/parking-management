@@ -1,46 +1,30 @@
 import http from 'k6/http';
-import { sleep, check } from 'k6';
-import { BASE_URL, getThinkTime } from '../config.js';
+import {sleep, check} from 'k6';
+import {BASE_URL} from '../config.js';
 
-export default function() {
-  // Primeiro registramos uma entrada para obter um ID de transação
-  const entryPayload = JSON.stringify({
-    plate: `ABC-${Math.floor(Math.random() * 9999)}`,
-    vehicleType: 'CAR',
-    entryTime: new Date().toISOString()
-  });
+export default function (license_plate) {
+    const exit = Date()
+    const endpoint = `${BASE_URL}/webhook`
+    const exitPayload = JSON.stringify({
+        event_type: 'EXIT',
+        license_plate,
+        entry_time: exit.toISOString()
+    });
 
-  const params = {
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  };
+    const params = {
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    };
 
-  // Registrar entrada
-  const entryResponse = http.post(`${BASE_URL}/parking/entry`, entryPayload, params);
-  
-  check(entryResponse, {
-    'entry status is 201': (r) => r.status === 201,
-  });
+    // Registrar saída de veículo
+    const responseExit = http.post(endpoint, exitPayload, params);
 
-  // Extrair ID da transação
-  const transactionId = entryResponse.json('id');
-  
-  // Simular tempo de permanência no estacionamento
-  sleep(2);
-  
-  // Registrar saída
-  const exitPayload = JSON.stringify({
-    exitTime: new Date().toISOString()
-  });
-  
-  const exitResponse = http.put(`${BASE_URL}/parking/exit/${transactionId}`, exitPayload, params);
-  
-  check(exitResponse, {
-    'exit status is 200': (r) => r.status === 200,
-    'payment calculated': (r) => r.json('paymentValue') !== undefined,
-  });
+    check(responseExit, {
+        'status is 201': (r) => r.status === 201,
+        'Response contains expected data': (r) => r.json().key === 'internalCode'
+    })
 
-  // Tempo de espera entre requisições
-  sleep(getThinkTime());
+    // Tempo de espera entre requisições
+    sleep(getThinkTime());
 }
