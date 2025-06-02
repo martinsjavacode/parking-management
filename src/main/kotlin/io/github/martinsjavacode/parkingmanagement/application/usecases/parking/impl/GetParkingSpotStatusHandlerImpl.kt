@@ -1,9 +1,9 @@
 package io.github.martinsjavacode.parkingmanagement.application.usecases.parking.impl
 
+import io.github.martinsjavacode.parkingmanagement.application.usecases.parking.GetMostRecentParkingEvent
 import io.github.martinsjavacode.parkingmanagement.application.usecases.parking.GetParkingSpotStatusHandler
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingCustomQueryRepositoryPort
-import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingSpotStatus
@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 
 @Service
 class GetParkingSpotStatusHandlerImpl(
-    private val parkingEventRepository: ParkingEventRepositoryPort,
+    private val getMostRecentParkingEvent: GetMostRecentParkingEvent,
     private val parkingCustomQueryRepository: ParkingCustomQueryRepositoryPort,
 ) : GetParkingSpotStatusHandler {
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -28,7 +28,7 @@ class GetParkingSpotStatusHandlerImpl(
         latitude: Double,
         longitude: Double,
     ): ParkingSpotStatus {
-        val parkingEvent = fetchMostRecentParkingEvent(latitude, longitude)
+        val parkingEvent = getMostRecentParkingEvent.handle(latitude, longitude)
         val parking = fetchParkingDetails(parkingEvent.latitude, parkingEvent.longitude)
         val now = LocalDateTime.now()
 
@@ -36,13 +36,6 @@ class GetParkingSpotStatusHandlerImpl(
         val elapsedTime = calculateElapsedTime(parkingEvent.entryTime, now)
 
         return buildParkingSpotStatus(parkingEvent, amountToPay, elapsedTime)
-    }
-
-    private suspend fun fetchMostRecentParkingEvent(
-        latitude: Double,
-        longitude: Double,
-    ) = withContext(dispatcherIO) {
-        parkingEventRepository.findMostRecentByCoordinates(latitude, longitude)
     }
 
     private suspend fun fetchParkingDetails(

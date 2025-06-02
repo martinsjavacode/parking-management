@@ -656,7 +656,7 @@ k6 run spike-test.js  # Teste de pico
     - POST /plate-status -> GET /plates/{licensePlate}/status
     - POST /spot-status -> GET /spots/status?lat=-23.561684&lng=-46.655981
     - GET /revenue -> GET /revenues/{sector}?date=2025-01-01
-    - 
+
 ### 12.3 Limitações Identificadas:
 * Payload Insuficiente no Evento ENTRY:
     * Não contém informações detalhadas, como o setor, dificultando a identificação do estacionamento correto.

@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:17.5
-    container_name: parking-postgres
+    container_name: postgres-parking
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -13,10 +13,26 @@ services:
     networks:
       - parking-management
 
+  redis:
+    image: redis:8.0
+    container_name: redis-parking
+    ports:
+      - "6379:6379" # Porta padrão do Redis
+    command: [ "redis-server", "--appendonly", "yes" ] # Habilitar persistência AOF
+    volumes:
+      - redis-data:/data # Persistência dos dados
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
 networks:
   parking-management:
     driver: bridge
 
 volumes:
   parking_postgres_data:
+    driver: local
+  redis-data:
     driver: local

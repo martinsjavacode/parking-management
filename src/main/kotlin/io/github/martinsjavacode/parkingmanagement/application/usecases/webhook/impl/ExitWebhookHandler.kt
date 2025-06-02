@@ -2,10 +2,11 @@ package io.github.martinsjavacode.parkingmanagement.application.usecases.webhook
 
 import io.github.martinsjavacode.parkingmanagement.application.usecases.parking.GetParkingByCoordinatesOrThrowHandler
 import io.github.martinsjavacode.parkingmanagement.application.usecases.revenue.UpdateOrInitializeDailyRevenueHandler
-import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
+import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.EXIT
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType.PARKED
 import io.github.martinsjavacode.parkingmanagement.domain.enums.ExceptionType
-import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_CODE_EVENT_NOT_FOUND
+import io.github.martinsjavacode.parkingmanagement.domain.enums.InternalCodeType.WEBHOOK_EVENT_ACTIVE_NOT_FOUND
+import io.github.martinsjavacode.parkingmanagement.domain.gateway.redis.DistributedLockPort
 import io.github.martinsjavacode.parkingmanagement.domain.gateway.repository.parking.ParkingEventRepositoryPort
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.Parking
 import io.github.martinsjavacode.parkingmanagement.domain.model.parking.ParkingEvent
@@ -47,6 +48,7 @@ class ExitWebhookHandler(
     private val parkingEventRepository: ParkingEventRepositoryPort,
     private val getParkingByCoordinatesOrThrowHandler: GetParkingByCoordinatesOrThrowHandler,
     private val updateDailyRevenueHandler: UpdateOrInitializeDailyRevenueHandler,
+    private val distributedLock: DistributedLockPort,
 ) {
     private val logger = loggerFor<ExitWebhookHandler>()
     private val locale = LocaleContextHolder.getLocale()
@@ -89,7 +91,11 @@ class ExitWebhookHandler(
         supervisorScope {
             val updatedEventDeferred =
                 async {
-                    saveUpdatedParkingEvent(parkingEvent, amountToPay, event.exitTime)
+                    saveUpdatedParkingEvent(
+                        parkingEvent,
+                        amountToPay,
+                        exitTime = event.exitTime,
+                    )
                 }
 
             val updateDailyRevenueDeferred =
@@ -108,7 +114,7 @@ class ExitWebhookHandler(
     }
 
     private fun validateEventData(event: WebhookEvent) {
-        require(event.eventType == EventType.EXIT) { "Invalid event type: ${event.eventType}" }
+        require(event.eventType == EXIT) { "Invalid event type: ${event.eventType}" }
         requireNotNull(event.exitTime) { "Exit time is required for EXIT event" }
     }
 
@@ -118,16 +124,16 @@ class ExitWebhookHandler(
                 parkingEventRepository.findAllByLicensePlate(licensePlate)
             }
 
-        return parkingEventsFound.firstOrNull { parkingEvent -> parkingEvent.eventType == PARKED }
+        return parkingEventsFound.firstOrNull { parkingEvent -> parkingEvent.eventType != EXIT }
             ?: throw NoParkedEventFoundException(
-                WEBHOOK_CODE_EVENT_NOT_FOUND.code(),
+                WEBHOOK_EVENT_ACTIVE_NOT_FOUND.code(),
                 messageSource.getMessage(
-                    WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey(),
+                    WEBHOOK_EVENT_ACTIVE_NOT_FOUND.messageKey(),
                     arrayOf(PARKED.name, licensePlate),
                     locale,
                 ),
                 messageSource.getMessage(
-                    "${WEBHOOK_CODE_EVENT_NOT_FOUND.messageKey()}.friendly",
+                    "${WEBHOOK_EVENT_ACTIVE_NOT_FOUND.messageKey()}.friendly",
                     arrayOf(PARKED.name, licensePlate),
                     locale,
                 ),
@@ -160,11 +166,18 @@ class ExitWebhookHandler(
             parkingEvent.copy(
                 amountPaid = amountToPay,
                 exitTime = exitTime,
-                eventType = EventType.EXIT,
+                eventType = EXIT,
             )
 
-        withContext(dispatcherIO) {
-            parkingEventRepository.save(updatedParkingEvent)
+        runCatching {
+            withContext(dispatcherIO) {
+                parkingEventRepository.save(updatedParkingEvent)
+            }
+        }.onSuccess {
+            distributedLock.releaseIdempotencyKey(
+                latitude = parkingEvent.latitude,
+                longitude = parkingEvent.longitude,
+            )
         }
     }
 }
