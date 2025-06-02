@@ -641,7 +641,7 @@ k6 run spike-test.js  # Teste de pico
 
 ## 12. Considerações Futuras
 
-### 12.1 Melhorias Planejadas
+### 12.1 Melhorias Propostas
 
 - Implementação de autenticação e autorização
 - Suporte a múltiplas moedas para pagamentos
@@ -649,8 +649,19 @@ k6 run spike-test.js  # Teste de pico
 - Integração com sistemas de pagamento
 - Otimizações de desempenho para alta concorrência
 - Expansão dos testes de integração
+- Expandir Payloads: Adicionar informações no evento ENTRY para incluir o setor e permitir uma lógica mais granular.
 
-### 12.2 Escalabilidade
+### 12.2 Melhoria Programada
+- Ajustar para padrões mais descritivos e alinhados com boas práticas RESTful:
+    - POST /plate-status -> GET /plates/{licensePlate}/status
+    - POST /spot-status -> GET /spots/status?lat=-23.561684&lng=-46.655981
+    - GET /revenue -> GET /revenues/{sector}?date=2025-01-01
+    - 
+### 12.3 Limitações Identificadas:
+* Payload Insuficiente no Evento ENTRY:
+    * Não contém informações detalhadas, como o setor, dificultando a identificação do estacionamento correto.
+
+## 13. Escalabilidade
 
 O sistema foi projetado considerando escalabilidade horizontal:
 
@@ -659,7 +670,7 @@ O sistema foi projetado considerando escalabilidade horizontal:
 - Arquitetura modular que permite distribuição de componentes
 - Testes de carga para validar limites de escalabilidade
 
-## 13. Conclusão
+## 14. Conclusão
 
 O Sistema de Gestão de Estacionamento oferece uma solução completa e robusta para o gerenciamento de estacionamentos com precificação dinâmica. A arquitetura hexagonal adotada proporciona flexibilidade, testabilidade e manutenibilidade, enquanto as tecnologias escolhidas (Kotlin, Spring Boot, PostgreSQL) garantem desempenho e confiabilidade.
 

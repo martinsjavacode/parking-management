@@ -22,6 +22,5 @@ export default function (license_plate) {
 
     checkEventResponse(responseParked)
 
-    // Tempo de espera entre requisições
-    sleep(getThinkTime());
+    return spot
 }

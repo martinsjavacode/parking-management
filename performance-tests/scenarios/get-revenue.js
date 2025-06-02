@@ -2,19 +2,12 @@ import http from 'k6/http';
 import {sleep} from 'k6';
 import {BASE_URL, checkRestResponse, formatDate, getSpot, getThinkTime} from '../config.js';
 
-export default function () {
-    const spot = getSpot()
-    const payload = JSON.stringify({
-        date: formatDate(new Date()),
-        sector: spot.sector
-    })
-    const params = {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    };
+export default function (spot) {
+    const date = formatDate(new Date())
+    const sector = spot.sector
+
     // Consultar status do estacionamento
-    const response = http.get(`${BASE_URL}/revenue`, payload, params);
+    const response = http.get(`${BASE_URL}/revenues/${sector}?date=${date}`);
 
     checkRestResponse(response, 'amount');
 

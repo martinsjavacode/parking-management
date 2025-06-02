@@ -5,8 +5,8 @@ import { STRESS_TEST_VUS, STRESS_TEST_DURATION } from './config.js';
 // Importar cenários
 import parkingEntry from './scenarios/parking-entry.js';
 import parkingExit from './scenarios/parking-exit.js';
-import getParkingStatus from './scenarios/get-spot-status.js';
 import parkingParked from "./scenarios/parking-parked.js";
+import getPlateStatus from './scenarios/get-plate-status.js';
 import getSpotStatus from "./scenarios/get-spot-status.js";
 import getRevenue from "./scenarios/get-revenue.js";
 
@@ -26,6 +26,7 @@ export const options = {
 
 export default function () {
     let vehicle = null
+    let spot = null
     group('Parking Entry', () => {
         vehicle = parkingEntry();
     });
@@ -33,13 +34,13 @@ export default function () {
     sleep(1);
 
     group('Parking Parked', () => {
-        parkingParked(vehicle.license_plate);
+        spot = parkingParked(vehicle.license_plate);
     });
 
     sleep(1);
 
-    group('Parking Status', () => {
-        getParkingStatus();
+    group('Plate Status', () => {
+        getPlateStatus(vehicle.license_plate);
     });
 
     group('Parking Exit', () => {
@@ -49,12 +50,12 @@ export default function () {
     sleep(1);
 
     group('Spot Status', () => {
-        getSpotStatus(vehicle.license_plate);
+        getSpotStatus(spot);
     });
 
     sleep(1);
 
     group('Revenue', () => {
-        getRevenue()
+        getRevenue(spot)
     });
 }
