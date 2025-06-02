@@ -20,6 +20,17 @@ import org.springframework.context.MessageSource
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.stereotype.Component
 
+/**
+ * Adapter implementation for the parking repository port.
+ *
+ * This class implements the ParkingRepositoryPort interface,
+ * providing concrete implementations for parking data operations.
+ *
+ * @property parkingRepository Repository for parking entities
+ * @property parkingSpotRepository Repository for parking spot entities
+ * @property messageSource Source for internationalized messages
+ * @property traceContext Context for tracing requests
+ */
 @Component
 class ParkingRepositoryAdapter(
     private val parkingRepository: ParkingRepository,
@@ -30,6 +41,12 @@ class ParkingRepositoryAdapter(
     private val logger = loggerFor<ParkingRepositoryAdapter>()
     private val locale = LocaleContextHolder.getLocale()
 
+    /**
+     * Inserts or updates a parking entity and its associated spots.
+     *
+     * @param parking The parking entity to be saved or updated
+     * @throws ParkingSaveFailedException If the save operation fails
+     */
     override suspend fun upsert(parking: Parking) {
         runCatching {
             val parkingEntity = parking.toEntity()
@@ -75,6 +92,12 @@ class ParkingRepositoryAdapter(
         }
     }
 
+    /**
+     * Retrieves all parking entities.
+     *
+     * @return A flow of all parking entities
+     * @throws ParkingNotFoundException If the retrieval operation fails
+     */
     override suspend fun findAll(): Flow<Parking> =
         runCatching {
             parkingRepository.findAll()
@@ -97,6 +120,13 @@ class ParkingRepositoryAdapter(
             )
         }
 
+    /**
+     * Finds a parking entity by its sector name.
+     *
+     * @param sector The sector name to search for
+     * @return The parking entity with the specified sector name
+     * @throws ParkingNotFoundException If no parking with the given sector name is found
+     */
     override suspend fun findBySectorName(sector: String): Parking =
         runCatching {
             parkingRepository.findBySector(sector).toDomain()
