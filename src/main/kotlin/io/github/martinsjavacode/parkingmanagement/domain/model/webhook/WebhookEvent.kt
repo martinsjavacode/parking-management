@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.github.martinsjavacode.parkingmanagement.domain.enums.EventType
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
+import java.util.UUID
 
 /**
  * Represents an event received via a webhook from external systems.
@@ -12,6 +13,7 @@ import java.time.LocalDateTime
  * This class contains raw data received from external systems,
  * such as parking simulators, for processing by the system.
  *
+ * @property id Unique identifier for the event, used for idempotency
  * @property licensePlate License plate of the vehicle associated with the event
  * @property eventType Type of the event (ENTRY, PARKED, EXIT)
  * @property timestamp Timestamp of the event, mainly used for entry events
@@ -22,6 +24,12 @@ import java.time.LocalDateTime
  */
 @JsonAutoDetect
 data class WebhookEvent(
+    @field:Schema(
+        description = "Unique identifier for the event",
+        example = "123e4567-e89b-12d3-a456-426614174000",
+        required = false,
+    )
+    val id: String? = UUID.randomUUID().toString(),
     @JsonProperty("license_plate")
     @field:Schema(description = "License plate of the vehicle", example = "ZUL0001", required = true)
     val licensePlate: String,

@@ -1,6 +1,5 @@
 package io.github.martinsjavacode.parkingmanagement.adapters.inbound.rest.revenue
 
-import io.github.martinsjavacode.parkingmanagement.adapters.inbound.rest.revenue.request.DailyBillingRequest
 import io.github.martinsjavacode.parkingmanagement.application.usecases.revenue.GetDailyBillingByParkingSectorHandler
 import io.github.martinsjavacode.parkingmanagement.domain.enums.CurrencyType
 import io.github.martinsjavacode.parkingmanagement.domain.model.revenue.Revenue
@@ -26,11 +25,6 @@ class RevenueRestControllerTest : BehaviorSpec({
     given("A daily billing request") {
         val date = LocalDate.of(2025, 1, 1)
         val sector = "A"
-        val request =
-            DailyBillingRequest(
-                date = date,
-                sector = sector,
-            )
 
         val revenue =
             Revenue(
@@ -49,7 +43,7 @@ class RevenueRestControllerTest : BehaviorSpec({
             }
 
             then("Should return a successful response with the revenue data") {
-                val response = revenueRestController.billingConsultation(request)
+                val response = revenueRestController.billingConsultation(sector, date)
 
                 // Verify the response status
                 response.statusCode shouldBe HttpStatus.OK
@@ -77,7 +71,7 @@ class RevenueRestControllerTest : BehaviorSpec({
             then("Should propagate the exception") {
                 val thrownException =
                     runCatching {
-                        revenueRestController.billingConsultation(request)
+                        revenueRestController.billingConsultation(sector, date)
                     }.exceptionOrNull()
 
                 thrownException shouldBe exception

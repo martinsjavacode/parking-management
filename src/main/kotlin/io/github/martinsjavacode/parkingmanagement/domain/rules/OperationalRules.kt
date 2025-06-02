@@ -47,9 +47,8 @@ object OperationalRules {
         latitude: Double?,
         longitude: Double?,
     ) {
-        val notNull = latitude != null && longitude != null
-        check(notNull) { "Latitude and longitude cannot be null" }
-        check(latitude!! in -90.0..90.0 && longitude!! in -180.0..180.0) {
+        check(latitude != null && longitude != null) { "Latitude and longitude cannot be null" }
+        check(latitude in -90.0..90.0 && longitude in -180.0..180.0) {
             "Invalid latitude or longitude"
         }
     }

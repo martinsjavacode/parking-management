@@ -1,8 +1,8 @@
 import http from 'k6/http';
-import {sleep, check} from 'k6';
-import {BASE_URL, getThinkTime, getSpot} from '../config.js';
+import {sleep} from 'k6';
+import {BASE_URL, checkEventResponse, getSpot, getThinkTime} from '../config.js';
 
-export default function(license_plate) {
+export default function (license_plate) {
     const spot = getSpot()
     const parkedPayload = JSON.stringify({
         license_plate,
@@ -20,11 +20,7 @@ export default function(license_plate) {
     // Registrar entrada de veículo na vaga
     const responseParked = http.post(endpoint, parkedPayload, params);
 
-    check(responseParked, {
-        'status is 201': (r) => r.status === 201,
-        'Response contains expected data': (r) => r.json().key === 'internalCode'
-    })
+    checkEventResponse(responseParked)
 
-    // Tempo de espera entre requisições
-    sleep(getThinkTime());
+    return spot
 }

@@ -1,11 +1,14 @@
 import { sleep } from 'k6';
 import { group } from 'k6';
-import { SPIKE_TEST_VUS, SPIKE_TEST_DURATION } from './config.js';
+import {SPIKE_TEST_VUS, SPIKE_TEST_DURATION, getThinkTime} from './config.js';
 
 // Importar cenários
 import parkingEntry from './scenarios/parking-entry.js';
 import parkingExit from './scenarios/parking-exit.js';
-import getParkingStatus from './scenarios/get-spot-status.js';
+import parkingParked from "./scenarios/parking-parked.js";
+import getPlateStatus from './scenarios/get-plate-status.js';
+import getSpotStatus from "./scenarios/get-spot-status.js";
+import getRevenue from "./scenarios/get-revenue.js";
 
 export const options = {
   stages: [
@@ -21,20 +24,38 @@ export const options = {
   },
 };
 
-export default function() {
-  group('Parking Entry', () => {
-    parkingEntry();
-  });
+export default function () {
+    let vehicle = null
+    let spot = null
+    group('Parking Entry', () => {
+        vehicle = parkingEntry();
+    });
 
-  sleep(0.5);
+    sleep(.5);
 
-  group('Parking Exit', () => {
-    parkingExit();
-  });
+    group('Parking Parked', () => {
+        spot = parkingParked(vehicle.license_plate);
+    });
 
-  sleep(0.5);
+    sleep(.5);
 
-  group('Parking Status', () => {
-    getParkingStatus();
-  });
+    group('Plate Status', () => {
+        getPlateStatus(vehicle.license_plate);
+    });
+
+    group('Parking Exit', () => {
+        parkingExit(vehicle.license_plate);
+    });
+
+    sleep(.5);
+
+    group('Spot Status', () => {
+        getSpotStatus(spot);
+    });
+
+    sleep(.5);
+
+    group('Revenue', () => {
+        getRevenue(spot)
+    });
 }

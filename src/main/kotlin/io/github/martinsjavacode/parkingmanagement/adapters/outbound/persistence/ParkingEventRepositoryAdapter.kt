@@ -60,25 +60,33 @@ class ParkingEventRepositoryAdapter(
 
     override suspend fun findAllByLicensePlate(licensePlate: String): Flow<ParkingEvent> =
         runCatching {
-            parkingEventRepository.findByLicensePlate(licensePlate)
-                ?.map { parkingEventEntity ->
-                    parkingEventEntity.toDomain()
-                }
-        }.getOrNull() ?: throw LicensePlateNotFoundException(
-            PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.code(),
-            messageSource.getMessage(
-                PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.messageKey(),
-                null,
-                locale,
-            ),
-            messageSource.getMessage(
-                "${PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.messageKey()}.friendly",
-                null,
-                locale,
-            ),
-            traceContext.traceId(),
-            ExceptionType.PERSISTENCE_REQUEST,
-        )
+            val events = parkingEventRepository.findAllByLicensePlate(licensePlate)
+            events.map { parkingEventEntity ->
+                parkingEventEntity.toDomain()
+            }
+        }.getOrElse {
+            logger.error(
+                "Failed to find events for license plate. License Plate: {}, Trace ID: {}, Error: {}",
+                licensePlate,
+                traceContext.traceId(),
+                it.message,
+            )
+            throw LicensePlateNotFoundException(
+                PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.code(),
+                messageSource.getMessage(
+                    PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.messageKey(),
+                    null,
+                    locale,
+                ),
+                messageSource.getMessage(
+                    "${PARKING_EVENT_LICENSE_PLATE_NOT_FOUND.messageKey()}.friendly",
+                    null,
+                    locale,
+                ),
+                traceContext.traceId(),
+                ExceptionType.PERSISTENCE_REQUEST,
+            )
+        }
 
     override suspend fun findLastParkingEventByLicenseAndEventType(
         licensePlate: String,

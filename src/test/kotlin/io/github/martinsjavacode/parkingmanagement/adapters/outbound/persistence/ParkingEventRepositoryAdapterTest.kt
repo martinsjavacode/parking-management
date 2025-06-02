@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.context.MessageSource
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.*
 
 class ParkingEventRepositoryAdapterTest : BehaviorSpec({
     val messageSource = mockk<MessageSource>(relaxed = true)
@@ -98,7 +99,9 @@ class ParkingEventRepositoryAdapterTest : BehaviorSpec({
 
         `when`("Finding all events by license plate successfully") {
             beforeTest {
-                coEvery { parkingEventRepository.findByLicensePlate(licensePlate) } returns flowOf(parkingEventEntity)
+                coEvery {
+                    parkingEventRepository.findAllByLicensePlate(licensePlate)
+                } returns flowOf(parkingEventEntity)
             }
 
             then("Should return a flow of parking events") {
@@ -109,21 +112,23 @@ class ParkingEventRepositoryAdapterTest : BehaviorSpec({
                 result[0].licensePlate shouldBe licensePlate
                 result[0].eventType shouldBe EventType.PARKED
 
-                coVerify(exactly = 1) { parkingEventRepository.findByLicensePlate(licensePlate) }
+                coVerify(exactly = 1) { parkingEventRepository.findAllByLicensePlate(licensePlate) }
             }
         }
 
-        `when`("Finding all events by license plate returns null") {
+        `when`("Finding all events by license plate throws an exception") {
             beforeTest {
-                coEvery { parkingEventRepository.findByLicensePlate(licensePlate) } returns null
+                coEvery {
+                    parkingEventRepository.findAllByLicensePlate(licensePlate)
+                } throws RuntimeException("Database error")
             }
 
             then("Should throw LicensePlateNotFoundException") {
                 shouldThrow<LicensePlateNotFoundException> {
-                    parkingEventRepositoryAdapter.findAllByLicensePlate(licensePlate)
+                    parkingEventRepositoryAdapter.findAllByLicensePlate(licensePlate).toList()
                 }
 
-                coVerify(exactly = 1) { parkingEventRepository.findByLicensePlate(licensePlate) }
+                coVerify(exactly = 1) { parkingEventRepository.findAllByLicensePlate(licensePlate) }
             }
         }
 

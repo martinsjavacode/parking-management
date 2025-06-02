@@ -1,20 +1,6 @@
+import {check} from 'k6';
+
 export const BASE_URL = 'http://localhost:8080'; // Ajuste para a URL da sua API
-
-export const THINK_TIME_MIN = 1;
-export const THINK_TIME_MAX = 5;
-
-export function getThinkTime() {
-    return Math.floor(Math.random() * (THINK_TIME_MAX - THINK_TIME_MIN + 1) + THINK_TIME_MIN);
-}
-
-export const LOAD_TEST_VUS = 10;
-export const LOAD_TEST_DURATION = '60s';
-
-export const STRESS_TEST_VUS = 30;
-export const STRESS_TEST_DURATION = '120s';
-
-export const SPIKE_TEST_VUS = 50;
-export const SPIKE_TEST_DURATION = '30s';
 
 // Ajuste para as vagas cadastradas na sua API
 export function getSpot() {
@@ -203,3 +189,77 @@ export function getSpot() {
 
     return spots[Math.floor(Math.random() * spots.length)]
 }
+
+export const THINK_TIME_MIN = 1;
+export const THINK_TIME_MAX = 5;
+
+export function getThinkTime() {
+    return Math.floor(Math.random() * (THINK_TIME_MAX - THINK_TIME_MIN + 1) + THINK_TIME_MIN);
+}
+
+export const LOAD_TEST_VUS = 10;
+export const LOAD_TEST_DURATION = '60s';
+
+export const STRESS_TEST_VUS = 30;
+export const STRESS_TEST_DURATION = '120s';
+
+export const SPIKE_TEST_VUS = 50;
+export const SPIKE_TEST_DURATION = '30s';
+
+export function checkEventResponse(response) {
+    return check(response, {
+        'status is 202 or business error': (r) => {
+            if (r.status >= 400 && r.status < 500) {
+                try {
+                    let jsonData = r.json();
+                    // Verifica se a chave 'internalCode' existe no JSON
+                    return Object.keys(jsonData).includes('internalCode');
+                } catch (e) {
+                    console.error('Erro ao parsear JSON em erro 4xx:', e);
+                    return false; // Falha no check se o JSON não puder ser analisado
+                }
+            }
+
+            // Passa se o status é exatamente 202
+            return r.status === 202;
+        }
+    });
+}
+
+export function checkRestResponse(response, attribute) {
+    return check(response, {
+        'status is 200 or business error': (r) => {
+            if (r.status >= 400 && r.status < 500) {
+                try {
+                    let jsonData = r.json();
+                    return Object.keys(jsonData).some(key => key === 'internalCode'); // Verifica se a chave existe e é igual
+                } catch (e) {
+                    console.error('Erro ao parsear JSON em erro 4xx:', e);
+                    return false; // Falha no check se o JSON não puder ser analisado
+                }
+            }
+
+            if (r.status === 200) {
+                try {
+                    let jsonData = r.json();
+                    return Object.keys(jsonData).some(key => key === attribute); // Verifica se a chave existe e é igual
+                } catch (e) {
+                    console.error('Erro ao parsear JSON em sucesso:', e);
+                    return false; // Falha no check se o JSON não puder ser analisado
+                }
+            }
+
+            return !((r.status >= 300 && r.status < 400) || r.status === 500);
+        }
+    });
+}
+
+export function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Mês começa em 0
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+

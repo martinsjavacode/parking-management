@@ -6,9 +6,12 @@ import io.github.martinsjavacode.parkingmanagement.application.usecases.revenue.
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
 import java.time.LocalTime
 
 /**
@@ -20,14 +23,15 @@ import java.time.LocalTime
  * @property getDailyBillingByParkingSectorHandler Handler to fetch daily revenue by sector
  */
 @RestController
-@RequestMapping("/revenue")
+@RequestMapping("/revenues")
 class RevenueRestController(
     private val getDailyBillingByParkingSectorHandler: GetDailyBillingByParkingSectorHandler,
 ) {
     /**
      * Endpoint to query accumulated revenue by sector and date.
      *
-     * @param request Request containing the sector and date for the query
+     * @param sectorName Path Variables that contains the sector name
+     * @param date Query Variable that contains the date for query
      * @return Response with the accumulated revenue
      * @throws RevenueNotFoundException If no revenue is found for the given sector and date
      */
@@ -84,11 +88,12 @@ class RevenueRestController(
             ),
         ],
     )
-    @GetMapping
+    @GetMapping("/{sector}")
     suspend fun billingConsultation(
-        @RequestBody request: DailyBillingRequest,
+        @PathVariable("sector") sectorName: String,
+        @RequestParam(value = "date", required = true) date: LocalDate,
     ): ResponseEntity<DailyBillingResponse> {
-        val revenue = getDailyBillingByParkingSectorHandler.handle(request.date, request.sector)
+        val revenue = getDailyBillingByParkingSectorHandler.handle(date, sectorName)
         val dailyBillingResponse =
             DailyBillingResponse(
                 amount = revenue.amount,

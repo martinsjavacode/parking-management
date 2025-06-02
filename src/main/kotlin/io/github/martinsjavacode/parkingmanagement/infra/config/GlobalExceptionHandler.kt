@@ -9,6 +9,15 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import reactor.core.publisher.Mono
 
+/**
+ * Global exception handler for the application.
+ *
+ * This class provides centralized exception handling across all controllers
+ * in the application, ensuring consistent error responses.
+ *
+ * @property meterRegistry Registry for metrics collection
+ * @property traceContext Context for tracing requests
+ */
 @RestControllerAdvice
 class GlobalExceptionHandler(
     private val meterRegistry: MeterRegistry,
@@ -16,6 +25,12 @@ class GlobalExceptionHandler(
 ) {
     val logger = loggerFor<GlobalExceptionHandler>()
 
+    /**
+     * Handles business exceptions thrown by the application.
+     *
+     * @param ex The business exception to handle
+     * @return A response entity with appropriate status and error details
+     */
     @ExceptionHandler(BusinessException::class)
     fun handleBusinessException(ex: BusinessException): Mono<ResponseEntity<Map<String, Any?>>> {
         // Metrics for exceptions
@@ -48,6 +63,12 @@ class GlobalExceptionHandler(
         return Mono.just(ResponseEntity.status(ex.httpStatus).body(body))
     }
 
+    /**
+     * Handles generic exceptions not specifically handled elsewhere.
+     *
+     * @param ex The exception to handle
+     * @return A response entity with 500 status and error details
+     */
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception): Mono<ResponseEntity<Map<String, Any>>> {
         val details = ex.message ?: "No details"

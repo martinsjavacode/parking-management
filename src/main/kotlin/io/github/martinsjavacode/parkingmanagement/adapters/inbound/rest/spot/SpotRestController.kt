@@ -6,8 +6,9 @@ import io.github.martinsjavacode.parkingmanagement.adapters.inbound.rest.spot.re
 import io.github.martinsjavacode.parkingmanagement.application.usecases.parking.GetParkingSpotStatusHandler
 import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
@@ -25,7 +26,8 @@ class SpotRestController(
     /**
      * Endpoint to query the status of a parking spot by coordinates.
      *
-     * @param request Request containing the parking spot coordinates
+     * @param latitude Latitude of the parking spot
+     * @param longitude Longitude of the parking spot
      * @return Response with the parking spot status
      * @throws ParkingSpotNotFoundException If no parking spot is found at the given coordinates
      */
@@ -76,11 +78,12 @@ class SpotRestController(
             ),
         ],
     )
-    @PostMapping("/spot-status")
+    @GetMapping("/spots/status")
     suspend fun changeSpotStatus(
-        @RequestBody request: SpotStatusRequest,
+        @RequestParam(value = "lat", required = true) latitude: Double,
+        @RequestParam(value = "lng", required = true) longitude: Double,
     ): ResponseEntity<SpotStatusResponse> {
-        val spotStatus = getParkingSpotStatusHandler.handle(request.lat, request.lng)
+        val spotStatus = getParkingSpotStatusHandler.handle(latitude, longitude)
         return ResponseEntity.ok(spotStatus.toResponse())
     }
 }
