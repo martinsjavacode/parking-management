@@ -1,11 +1,11 @@
 server:
-  port: ${SERVER_PORT:3003}
+  port: ${SERVER_PORT:8080}
 
 spring:
   application:
     name: parking-management
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:default}
   devtools:
     add-properties: false
   r2dbc:
@@ -24,7 +24,7 @@ spring:
     password: postgres
   docker:
     compose:
-      enabled: true
+      enabled: ${DOCKER_COMPOSE_ENABLED:false}
       file: src/main/docker/docker-compose.yml
       profiles:
         active: ${spring.profiles.active}
@@ -59,7 +59,7 @@ springdoc:
     license:
       name: "MIT License"
       url: "https://opensource.org/licenses/MIT"
- 
+
 management:
   endpoints:
     web:
@@ -68,7 +68,7 @@ management:
   endpoint:
     health:
       show-details: always
-      
+
 logging:
   level:
     io.github.martinsjavacode: INFO

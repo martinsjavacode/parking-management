@@ -2,14 +2,15 @@
 
 ## 1. Visão Geral
 
-O Sistema de Gestão de Estacionamento é uma solução robusta e escalável para gerenciar estacionamentos com precificação dinâmica e controle de capacidade por setor. O sistema recebe eventos via webhook de um simulador externo para monitorar a entrada, estacionamento e saída de veículos, registrando dados de receita de forma precisa e confiável.
+O Sistema de Gestão de Estacionamento é uma solução robusta e escalável para gerenciar estacionamentos com precificação dinâmica e controle de capacidade por setor. O sistema recebe eventos via webhook de um simulador externo para monitorar a entrada, estacionamento e saída de veículos, registrando dados de receita de forma precisa e confiável. Utiliza Redis para garantir consistência em operações concorrentes e PostgreSQL para persistência de dados.
 
 ## 2. Objetivos
 
-- Implementar um serviço backend escalável e de fácil manutenção usando Kotlin, Spring Boot e PostgreSQL
+- Implementar um serviço backend escalável e de fácil manutenção usando Kotlin, Spring Boot, Redis e PostgreSQL
 - Suportar precificação dinâmica baseada na ocupação de cada setor
 - Manter o acompanhamento preciso da receita por setor e dia
 - Fornecer APIs REST para status do veículo, status da vaga e relatórios de receita
+- Garantir consistência em operações concorrentes através de bloqueios distribuídos
 - Oferecer documentação completa usando OpenAPI/Swagger
 - Garantir alta cobertura de testes e qualidade de código
 
@@ -79,10 +80,11 @@ Conecta o sistema ao mundo externo:
 - **PostgreSQL**: Banco de dados relacional escolhido por sua confiabilidade, recursos avançados e bom desempenho
 - **Spring Data R2DBC**: Utilizado para acesso reativo ao banco de dados, permitindo operações não-bloqueantes
 
-#### 5.3.3 Concorrência
+#### 5.3.3 Concorrência e Distribuição
 
 - **Kotlin Coroutines**: Implementação de programação assíncrona para melhor utilização de recursos e escalabilidade
 - **Suspending Functions**: Utilizadas para operações assíncronas sem callbacks complexos
+- **Redis**: Utilizado para implementar mecanismos de bloqueio distribuído e controle de idempotência
 
 #### 5.3.4 Tratamento de Erros
 
@@ -93,6 +95,41 @@ Conecta o sistema ao mundo externo:
 
 - **MessageSource**: Utilizado para mensagens de erro e notificações em múltiplos idiomas
 - **Locale Context**: Mantém informações sobre o idioma preferido do usuário
+
+### 5.4 Uso do Redis no Sistema
+
+O Redis é utilizado como componente fundamental para garantir a consistência e confiabilidade do sistema em um ambiente distribuído:
+
+#### 5.4.1 Mecanismo de Bloqueio Distribuído
+
+- **Implementação**: Através da classe `RedisDistributedLockAdapter` que implementa a interface `DistributedLockPort`
+- **Finalidade**: Prevenir condições de corrida quando múltiplos veículos tentam estacionar na mesma vaga simultaneamente
+- **Funcionamento**: 
+  - Quando um veículo tenta estacionar, o sistema adquire um bloqueio exclusivo para as coordenadas da vaga
+  - O bloqueio é associado à placa do veículo e tem um tempo de expiração configurável
+  - Apenas o veículo que possui o bloqueio pode completar a operação de estacionamento
+  - O bloqueio é liberado após a conclusão da operação ou em caso de falha
+
+#### 5.4.2 Controle de Idempotência
+
+- **Implementação**: Através dos métodos `checkAndMarkIdempotency` e `releaseIdempotencyKey` da interface `DistributedLockPort`
+- **Finalidade**: Garantir que eventos duplicados não sejam processados múltiplas vezes
+- **Funcionamento**:
+  - Cada evento recebido é marcado com uma chave de idempotência baseada nas coordenadas da vaga
+  - Se um evento com as mesmas coordenadas já foi processado, o sistema rejeita o evento duplicado
+  - As chaves de idempotência são liberadas quando um veículo deixa a vaga (evento EXIT)
+
+#### 5.4.3 Convenções de Nomenclatura de Chaves
+
+- **Bloqueios**: Utilizam o prefixo `parking:lock:{latitude}_{longitude}`
+- **Idempotência**: Utilizam o prefixo `parking:idempotency:{latitude}_{longitude}`
+
+#### 5.4.4 Benefícios da Utilização do Redis
+
+- **Alta Performance**: Operações em memória com baixa latência
+- **Expiração Automática**: Chaves podem ser configuradas para expirar automaticamente, evitando bloqueios permanentes
+- **Escalabilidade**: Permite que múltiplas instâncias da aplicação compartilhem o mesmo mecanismo de bloqueio
+- **Confiabilidade**: Garante a integridade das operações mesmo em ambientes com alta concorrência
 
 ## 6. Estrutura do Projeto
 
@@ -111,6 +148,19 @@ io.github.martinsjavacode.parkingmanagement/
 │   │   │   └── WebhookEvent.kt     # Endpoint para receber eventos de webhook
 │   │   └── rest/                   # Controllers REST
 │   │       ├── parking/
+│   │       ├── revenue/
+│   │       ├── spot/
+│   │       └── vehicle/
+│   └── outbound/                   # Adaptadores de saída (repositórios)
+│       ├── client/                 # Clientes para APIs externas
+│       ├── redis/                  # Adaptadores para Redis
+│       │   └── RedisDistributedLockAdapter.kt
+│       └── persistence/            # Adaptadores para persistência
+│           ├── ParkingCustomQueryRepositoryAdapter.kt
+│           ├── ParkingEventRepositoryAdapter.kt
+│           ├── ParkingRepositoryAdapter.kt
+│           ├── ParkingSpotRepositoryAdapter.kt
+│           └── RevenueRepositoryAdapter.kt
 │   │       ├── revenue/
 │   │       ├── spot/
 │   │       └── vehicle/
@@ -137,6 +187,8 @@ io.github.martinsjavacode.parkingmanagement/
 │   │   └── OccupancyActionType.kt
 │   ├── gateway/                    # Portas (interfaces) para adaptadores
 │   │   ├── client/
+│   │   ├── redis/                  # Interfaces para Redis
+│   │   │   └── DistributedLockPort.kt
 │   │   └── repository/
 │   │       ├── parking/
 │   │       └── revenue/
@@ -205,8 +257,8 @@ io.github.martinsjavacode.parkingmanagement/
 
 - **Processamento de eventos de webhook**:
   - `EntryEventHandler`: Processa eventos de entrada de veículos
-  - `ParkedEventHandler`: Processa eventos de estacionamento de veículos
-  - `ExitEventHandler`: Processa eventos de saída de veículos e calcula tarifas
+  - `ParkedEventHandler`: Processa eventos de estacionamento de veículos e implementa bloqueio distribuído
+  - `ExitEventHandler`: Processa eventos de saída de veículos, calcula tarifas e libera chaves de idempotência
 
 - **Consulta de status**:
   - `GetPlateStatusHandler`: Consulta o status atual de um veículo por placa
@@ -216,13 +268,14 @@ io.github.martinsjavacode.parkingmanagement/
   - `GetDailyBillingByParkingSectorHandler`: Consulta receitas por setor e data
   - `UpdateRevenueHandler`: Atualiza receitas após saída de veículos
 
-#### 6.2.4 Adaptadores de Repositório
+#### 6.2.4 Adaptadores de Repositório e Infraestrutura
 
 - **ParkingRepositoryAdapter**: Persistência de estacionamentos
 - **ParkingEventRepositoryAdapter**: Persistência de eventos de estacionamento
 - **ParkingSpotRepositoryAdapter**: Persistência de vagas
 - **RevenueRepositoryAdapter**: Persistência de receitas
 - **ParkingCustomQueryRepositoryAdapter**: Consultas personalizadas para estacionamentos
+- **RedisDistributedLockAdapter**: Implementação de bloqueio distribuído e idempotência usando Redis
 
 #### 6.2.5 Controllers REST
 
@@ -253,15 +306,18 @@ io.github.martinsjavacode.parkingmanagement/
 #### 7.1.2 Evento PARKED (Estacionado)
 
 1. O sistema recebe um evento de estacionamento com placa e coordenadas
-2. Verifica se o veículo está registrado como ENTRY
-3. Calcula o multiplicador de preço baseado na ocupação atual:
+2. Verifica se há duplicidade do evento usando Redis (controle de idempotência)
+3. Adquire um bloqueio distribuído para a vaga específica usando Redis
+4. Verifica se o veículo está registrado como ENTRY
+5. Calcula o multiplicador de preço baseado na ocupação atual:
    - Lotação < 25%: desconto de 10% (multiplicador 0.9)
    - Lotação ≤ 50%: preço base (multiplicador 1.0)
    - Lotação ≤ 75%: acréscimo de 10% (multiplicador 1.1)
    - Lotação ≤ 100%: acréscimo de 25% (multiplicador 1.25)
    - Lotação > 100%: não permite estacionar
-4. Registra o evento PARKED com o multiplicador calculado
-5. Cria um registro inicial de receita para o dia, se necessário
+6. Registra o evento PARKED com o multiplicador calculado
+7. Cria um registro inicial de receita para o dia, se necessário
+8. Libera o bloqueio distribuído após a conclusão da operação
 
 **Exemplo JSON recebido:**
 ```json
@@ -283,6 +339,7 @@ io.github.martinsjavacode.parkingmanagement/
    - Preço base do setor
 4. Registra o evento EXIT com o valor calculado
 5. Atualiza a receita do dia para o setor correspondente
+6. Libera a chave de idempotência no Redis para permitir que a vaga seja utilizada novamente
 
 **Exemplo JSON recebido:**
 ```json
@@ -353,6 +410,18 @@ GET /revenues/A?date=2025-01-01
   "timestamp": "2025-01-01T23:59:59.000Z"
 }
 ```
+
+### 7.3 Melhorias Implementadas na API
+
+O sistema originalmente utilizava endpoints menos intuitivos, mas foi refatorado para seguir padrões RESTful mais descritivos:
+
+| Endpoint Original | Endpoint Atual | Descrição |
+|------------------|----------------|-----------|
+| `POST /plate-status` | `GET /plates/{licensePlate}/status` | Consulta o status de um veículo por placa |
+| `POST /spot-status` | `GET /spots/status?lat={lat}&lng={lng}` | Consulta o status de uma vaga por coordenadas |
+| `GET /revenue` | `GET /revenues/{sector}?date={date}` | Consulta a receita por setor e data |
+
+Esta melhoria torna a API mais intuitiva, autodocumentada e alinhada com as melhores práticas RESTful.
 
 ## 8. Modelo de Dados
 
@@ -588,8 +657,33 @@ Exemplo de anotação para o `SpotRestController`:
 - JDK 17 ou superior
 - Docker e Docker Compose
 - PostgreSQL (ou container Docker)
+- Redis (ou container Docker)
 
-### 11.2 Configuração Local
+### 11.2 Variáveis de Ambiente
+
+O sistema utiliza as seguintes variáveis de ambiente para configuração:
+
+| Variável | Descrição | Valor Padrão |
+|----------|-----------|--------------|
+| `SERVER_PORT` | Porta em que a aplicação será executada | `8080` |
+| `SPRING_PROFILES_ACTIVE` | Perfil ativo do Spring (dev, prod, test) | `default` |
+| `DOCKER_COMPOSE_ENABLED` | Habilita o uso automático do Docker Compose | `false` |
+| `GARAGE_API_URL` | URL da API do simulador de garagem | `http://localhost:3000` |
+| `APP_VERSION` | Versão da aplicação para documentação | `1.0.0` |
+
+#### Detalhamento das Variáveis
+
+- **SERVER_PORT**: Define a porta HTTP em que a aplicação estará disponível. Importante para evitar conflitos com outros serviços.
+
+- **SPRING_PROFILES_ACTIVE**: Controla qual conjunto de configurações será carregado. Útil para ter diferentes configurações em ambientes de desenvolvimento, teste e produção.
+
+- **DOCKER_COMPOSE_ENABLED**: Quando definido como `true`, permite que o Spring Boot inicie automaticamente os containers Docker necessários (PostgreSQL e Redis) ao iniciar a aplicação.
+
+- **GARAGE_API_URL**: Especifica o endpoint do simulador de garagem que envia eventos de webhook para o sistema.
+
+- **APP_VERSION**: Utilizada na documentação OpenAPI/Swagger para indicar a versão atual da API.
+
+### 11.3 Configuração Local
 
 1. Clone o repositório:
    ```bash
@@ -597,17 +691,21 @@ Exemplo de anotação para o `SpotRestController`:
    cd parking-management
    ```
 
-2. Configure a variável de ambiente:
+2. Configure as variáveis de ambiente necessárias:
    ```bash
    export SERVER_PORT=3003
+   export SPRING_PROFILES_ACTIVE=dev
+   export DOCKER_COMPOSE_ENABLED=true
+   export GARAGE_API_URL=http://localhost:3000
+   export APP_VERSION=1.0.0
    ```
 
-3. Execute o banco de dados PostgreSQL:
+3. Execute os serviços necessários:
    ```bash
-   docker-compose up -d postgres
+   docker-compose up -d postgres redis
    ```
    
-   Alternativamente, o projeto está configurado com Spring Docker Compose, que automaticamente inicia um container Docker com PostgreSQL ao iniciar a aplicação, eliminando a necessidade de iniciar o banco de dados manualmente.
+   Alternativamente, o projeto está configurado com Spring Docker Compose, que automaticamente inicia containers Docker com PostgreSQL e Redis ao iniciar a aplicação, eliminando a necessidade de iniciar os serviços manualmente.
 
 4. Compile e inicie a aplicação:
    ```bash
@@ -643,13 +741,8 @@ k6 run spike-test.js  # Teste de pico
 - Expansão dos testes de integração
 - Expandir Payloads: Adicionar informações no evento ENTRY para incluir o setor e permitir uma lógica mais granular.
 
-### 12.2 Melhoria Programada
-- Ajustar para padrões mais descritivos e alinhados com boas práticas RESTful:
-    - POST /plate-status -> GET /plates/{licensePlate}/status
-    - POST /spot-status -> GET /spots/status?lat=-23.561684&lng=-46.655981
-    - GET /revenue -> GET /revenues/{sector}?date=2025-01-01
+### 12.2 Limitações Identificadas
 
-### 12.3 Limitações Identificadas:
 * Payload Insuficiente no Evento ENTRY:
     * Não contém informações detalhadas, como o setor, dificultando a identificação do estacionamento correto.
 
@@ -661,9 +754,10 @@ O sistema foi projetado considerando escalabilidade horizontal:
 - Banco de dados com índices otimizados
 - Arquitetura modular que permite distribuição de componentes
 - Testes de carga para validar limites de escalabilidade
+- Uso de Redis para bloqueios distribuídos e controle de idempotência
 
 ## 14. Conclusão
 
-O Sistema de Gestão de Estacionamento oferece uma solução completa e robusta para o gerenciamento de estacionamentos com precificação dinâmica. A arquitetura hexagonal adotada proporciona flexibilidade, testabilidade e manutenibilidade, enquanto as tecnologias escolhidas (Kotlin, Spring Boot, PostgreSQL) garantem desempenho e confiabilidade.
+O Sistema de Gestão de Estacionamento oferece uma solução completa e robusta para o gerenciamento de estacionamentos com precificação dinâmica. A arquitetura hexagonal adotada proporciona flexibilidade, testabilidade e manutenibilidade, enquanto as tecnologias escolhidas (Kotlin, Spring Boot, Redis, PostgreSQL) garantem desempenho e confiabilidade.
 
 A extensa cobertura de testes e documentação detalhada facilitam a manutenção e evolução do sistema, tornando-o uma base sólida para futuras expansões e integrações.
