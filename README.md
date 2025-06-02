@@ -297,13 +297,11 @@ io.github.martinsjavacode.parkingmanagement/
 
 #### 7.2.1 Consulta de Status de Veículo
 
-**Endpoint:** `POST /plate-status`
+**Endpoint:** `GET /plates/{licensePlate}/status`
 
 **Request:**
-```json
-{
-  "license_plate": "ZUL0001"
-}
+```
+GET /plates/ZUL0001/status
 ```
 
 **Response:**
@@ -320,14 +318,11 @@ io.github.martinsjavacode.parkingmanagement/
 
 #### 7.2.2 Consulta de Status de Vaga
 
-**Endpoint:** `POST /spots/status`
+**Endpoint:** `GET /spots/status?lat={latitude}&lng={longitude}`
 
 **Request:**
-```json
-{
-  "lat": -23.561684,
-  "lng": -46.655981
-}
+```
+GET /spots/status?lat=-23.561684&lng=-46.655981
 ```
 
 **Response:**
@@ -343,14 +338,11 @@ io.github.martinsjavacode.parkingmanagement/
 
 #### 7.2.3 Consulta de Receitas
 
-**Endpoint:** `GET /revenues`
+**Endpoint:** `GET /revenues/{sector}?date={date}`
 
 **Request:**
-```json
-{
-  "date": "2025-01-01",
-  "sector": "A"
-}
+```
+GET /revenues/A?date=2025-01-01
 ```
 
 **Response:**
